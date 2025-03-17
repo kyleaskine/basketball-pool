@@ -1,17 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Team, Matchup, UserInfo, BracketData, Regions } from './types';
 import ModularBracket from './ModularBracket';
+import PrintStyleCompactBracket from './PrintStyleCompactBracket';
 
-const BasketballPoolEntryForm: React.FC = () => {
+const ResponsiveBasketballPoolEntryForm: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserInfo>({
     firstName: '',
     lastName: '',
     email: '',
     contact: ''
   });
-
+  
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [submitAttempted, setSubmitAttempted] = useState<boolean>(false);
+  const [isLargeScreen, setIsLargeScreen] = useState<boolean>(false);
+  const [preferCompact, setPreferCompact] = useState<boolean | null>(null);
 
   // Tournament data with the 2025 teams
   const regions: Regions = {
@@ -27,7 +30,7 @@ const BasketballPoolEntryForm: React.FC = () => {
         { seed: 4, name: "Texas A&M" },
         { seed: 13, name: "Yale" },
         { seed: 6, name: "Mississippi" },
-        { seed: 11, name: "San Diego St./N. Carolina" },
+        { seed: 11, name: "SDSU/UNC" },
         { seed: 3, name: "Iowa St." },
         { seed: 14, name: "Lipscomb" },
         { seed: 7, name: "Marquette" },
@@ -227,6 +230,24 @@ const BasketballPoolEntryForm: React.FC = () => {
   // Initialize the bracket data
   const [bracketData, setBracketData] = useState<BracketData>(initializeBracket);
 
+  // Check screen size on component mount and when window is resized
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth >= 1400 && window.innerHeight >= 900);
+    };
+    
+    // Initial check
+    checkScreenSize();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkScreenSize);
+    
+    // Clean up event listener on unmount
+    return () => {
+      window.removeEventListener('resize', checkScreenSize);
+    };
+  }, []);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setUserInfo(prev => ({
@@ -244,50 +265,145 @@ const BasketballPoolEntryForm: React.FC = () => {
     }
   };
   
+  // Find a matchup by ID in the bracket data
+  const findMatchup = (matchupId: number): { matchup: Matchup, round: number } | null => {
+    for (let round = 1; round <= 6; round++) {
+      const matchupIndex = bracketData[round].findIndex(m => m.id === matchupId);
+      if (matchupIndex !== -1) {
+        return {
+          matchup: bracketData[round][matchupIndex],
+          round
+        };
+      }
+    }
+    return null;
+  };
+  
+  // Recursive function to clear a team from subsequent rounds
+  const clearTeamFromSubsequentRounds = (
+    team: Team, 
+    currentRound: number, 
+    currentMatchupId: number,
+    newBracketData: BracketData
+  ): void => {
+    // Base case: we've reached the end of the tournament
+    if (currentRound >= 7) return;
+    
+    // Find the current matchup
+    const matchupInfo = findMatchup(currentMatchupId);
+    if (!matchupInfo) return;
+    
+    const { matchup } = matchupInfo;
+    
+    // If this matchup has a next matchup ID, process it recursively
+    if (matchup.nextMatchupId !== null) {
+      const nextMatchupInfo = findMatchup(matchup.nextMatchupId);
+      if (nextMatchupInfo) {
+        const { matchup: nextMatchup, round: nextRound } = nextMatchupInfo;
+        
+        // Check if this team is in the next matchup
+        if (nextMatchup.teamA?.name === team.name && nextMatchup.teamA?.seed === team.seed) {
+          // Clear teamA
+          const nextMatchupIndex = newBracketData[nextRound].findIndex(m => m.id === nextMatchup.id);
+          if (nextMatchupIndex !== -1) {
+            newBracketData[nextRound][nextMatchupIndex] = {
+              ...newBracketData[nextRound][nextMatchupIndex],
+              teamA: null
+            };
+            
+            // If this team was also the winner, clear that too and continue recursively
+            if (nextMatchup.winner?.name === team.name && nextMatchup.winner?.seed === team.seed) {
+              newBracketData[nextRound][nextMatchupIndex] = {
+                ...newBracketData[nextRound][nextMatchupIndex],
+                winner: null
+              };
+              
+              // Continue recursively to clear subsequent rounds
+              clearTeamFromSubsequentRounds(team, nextRound, nextMatchup.id, newBracketData);
+            }
+          }
+        } else if (nextMatchup.teamB?.name === team.name && nextMatchup.teamB?.seed === team.seed) {
+          // Clear teamB
+          const nextMatchupIndex = newBracketData[nextRound].findIndex(m => m.id === nextMatchup.id);
+          if (nextMatchupIndex !== -1) {
+            newBracketData[nextRound][nextMatchupIndex] = {
+              ...newBracketData[nextRound][nextMatchupIndex],
+              teamB: null
+            };
+            
+            // If this team was also the winner, clear that too and continue recursively
+            if (nextMatchup.winner?.name === team.name && nextMatchup.winner?.seed === team.seed) {
+              newBracketData[nextRound][nextMatchupIndex] = {
+                ...newBracketData[nextRound][nextMatchupIndex],
+                winner: null
+              };
+              
+              // Continue recursively to clear subsequent rounds
+              clearTeamFromSubsequentRounds(team, nextRound, nextMatchup.id, newBracketData);
+            }
+          }
+        } else if (nextMatchup.winner?.name === team.name && nextMatchup.winner?.seed === team.seed) {
+          // If only the winner matches (odd case), clear it and continue
+          const nextMatchupIndex = newBracketData[nextRound].findIndex(m => m.id === nextMatchup.id);
+          if (nextMatchupIndex !== -1) {
+            newBracketData[nextRound][nextMatchupIndex] = {
+              ...newBracketData[nextRound][nextMatchupIndex],
+              winner: null
+            };
+            
+            // Continue recursively to clear subsequent rounds
+            clearTeamFromSubsequentRounds(team, nextRound, nextMatchup.id, newBracketData);
+          }
+        }
+      }
+    }
+  };
+  
   // This would handle selecting a team to advance
   const handleTeamSelect = (matchupId: number, team: Team): void => {
     // Find the matchup
-    let round = 1;
-    let matchup: Matchup | undefined = undefined;
+    const matchupInfo = findMatchup(matchupId);
+    if (!matchupInfo) return;
     
-    while (round <= 6 && !matchup) {
-      matchup = bracketData[round].find(m => m.id === matchupId);
-      if (!matchup) round++;
+    const { matchup, round } = matchupInfo;
+    
+    // Create a deep copy of the bracket data
+    const newBracketData = JSON.parse(JSON.stringify(bracketData)) as BracketData;
+    
+    // Find the index of the matchup in the current round
+    const matchupIndex = newBracketData[round].findIndex(m => m.id === matchupId);
+    if (matchupIndex === -1) return;
+    
+    // Check if there was a previous winner that's different from the new selection
+    const previousWinner = matchup.winner;
+    if (previousWinner && previousWinner.name !== team.name) {
+      // Clear the previous winner from all subsequent rounds
+      clearTeamFromSubsequentRounds(previousWinner, round, matchupId, newBracketData);
     }
     
-    if (!matchup) return;
-    
     // Update the current matchup's winner
-    const newBracketData = { ...bracketData };
-    newBracketData[round] = [...bracketData[round]];
-    const matchupIndex = newBracketData[round].findIndex(m => m.id === matchupId);
     newBracketData[round][matchupIndex] = {
-      ...matchup,
+      ...newBracketData[round][matchupIndex],
       winner: team
     };
     
     // If there's a next matchup, update it too
     if (matchup.nextMatchupId !== null) {
-      let nextRound = 1;
-      let nextMatchup: Matchup | undefined = undefined;
-      
-      while (nextRound <= 6 && !nextMatchup) {
-        nextMatchup = bracketData[nextRound].find(m => m.id === matchup?.nextMatchupId);
-        if (!nextMatchup) nextRound++;
-      }
-      
-      if (nextMatchup) {
-        newBracketData[nextRound] = [...bracketData[nextRound]];
-        const nextMatchupIndex = newBracketData[nextRound].findIndex(m => m.id === matchup?.nextMatchupId);
+      const nextMatchupInfo = findMatchup(matchup.nextMatchupId);
+      if (nextMatchupInfo) {
+        const { round: nextRound } = nextMatchupInfo;
+        const nextMatchupIndex = newBracketData[nextRound].findIndex(m => m.id === matchup.nextMatchupId);
         
-        // Determine if this winner goes into teamA or teamB slot
-        const isTeamA = matchup.position % 2 === 0;
-        
-        newBracketData[nextRound][nextMatchupIndex] = {
-          ...nextMatchup,
-          teamA: isTeamA ? team : nextMatchup.teamA,
-          teamB: isTeamA ? nextMatchup.teamB : team
-        };
+        if (nextMatchupIndex !== -1) {
+          // Determine if this winner goes into teamA or teamB slot
+          const isTeamA = matchup.position % 2 === 0;
+          
+          newBracketData[nextRound][nextMatchupIndex] = {
+            ...newBracketData[nextRound][nextMatchupIndex],
+            teamA: isTeamA ? team : newBracketData[nextRound][nextMatchupIndex].teamA,
+            teamB: isTeamA ? newBracketData[nextRound][nextMatchupIndex].teamB : team
+          };
+        }
       }
     }
     
@@ -430,6 +546,19 @@ const BasketballPoolEntryForm: React.FC = () => {
     }
   };
 
+  // Toggle between compact and regular view
+  const toggleViewMode = () => {
+    setPreferCompact(prev => prev === null ? isLargeScreen : !prev);
+  };
+  
+  // Determine if we should use compact mode
+  const useCompactView = () => {
+    if (preferCompact !== null) {
+      return preferCompact;
+    }
+    return isLargeScreen;
+  };
+
   // Render the UserInfoForm component
   const UserInfoForm: React.FC = () => (
     <div className="bg-white p-6 rounded-lg shadow-md mb-6">
@@ -538,6 +667,12 @@ const BasketballPoolEntryForm: React.FC = () => {
       >
         All Favorites
       </button>
+      <button
+        onClick={toggleViewMode}
+        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+      >
+        {useCompactView() ? "Switch to Regular View" : "Switch to Compact View"}
+      </button>
     </div>
   );
 
@@ -557,7 +692,11 @@ const BasketballPoolEntryForm: React.FC = () => {
       
       <UserInfoForm />
       
-      <ModularBracket bracketData={bracketData} onTeamSelect={handleTeamSelect} />
+      {useCompactView() ? (
+        <PrintStyleCompactBracket bracketData={bracketData} onTeamSelect={handleTeamSelect} />
+      ) : (
+        <ModularBracket bracketData={bracketData} onTeamSelect={handleTeamSelect} />
+      )}
       
       <ControlButtons />
       
@@ -569,4 +708,4 @@ const BasketballPoolEntryForm: React.FC = () => {
   );
 };
 
-export default BasketballPoolEntryForm;
+export default ResponsiveBasketballPoolEntryForm;

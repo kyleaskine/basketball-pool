@@ -5,12 +5,13 @@ interface TeamSlotProps {
   team: Team | null;
   isWinner: boolean;
   onClick: () => void;
+  horizontal?: boolean;
 }
 
-const TeamSlot: React.FC<TeamSlotProps> = ({ team, isWinner, onClick }) => {
+const TeamSlot: React.FC<TeamSlotProps> = ({ team, isWinner, onClick, horizontal = false }) => {
   if (!team) {
     return (
-      <div className="h-10 bg-gray-50 border border-gray-200 rounded-md flex items-center px-2 text-gray-400">
+      <div className={`${horizontal ? 'w-40' : 'h-10'} bg-gray-50 border border-gray-200 rounded-md flex items-center px-2 text-gray-400`}>
         TBD
       </div>
     );
@@ -18,7 +19,7 @@ const TeamSlot: React.FC<TeamSlotProps> = ({ team, isWinner, onClick }) => {
   
   return (
     <div 
-      className={`h-10 border rounded-md flex items-center px-2 cursor-pointer hover:bg-blue-50 ${
+      className={`${horizontal ? 'w-40' : 'h-10'} border rounded-md flex items-center px-2 cursor-pointer hover:bg-blue-50 ${
         isWinner ? 'bg-blue-100 border-blue-500' : 'bg-white border-gray-300'
       }`}
       onClick={onClick}
@@ -162,7 +163,9 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
       <h3 className="bg-red-800 text-white text-center py-2 rounded-t font-bold mb-4">
         Final Four & Championship
       </h3>
-      <div className="flex justify-center items-center gap-4">
+      
+      {/* Final Four Matchups */}
+      <div className="flex justify-center items-start gap-8 mb-6">
         <div className="w-64">
           <div className="text-center font-bold mb-2">Final Four</div>
           <div className="relative">
@@ -186,43 +189,6 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
           </div>
         </div>
         
-        <div className="w-80 border-2 border-yellow-500 rounded-lg bg-yellow-50 p-4">
-          <h4 className="text-center font-bold mb-2">Championship</h4>
-          <div className="relative">
-            <TeamSlot 
-              team={championshipMatchup.teamA} 
-              isWinner={championshipMatchup.winner === championshipMatchup.teamA}
-              onClick={() => {
-                const team = championshipMatchup.teamA;
-                if (team) onTeamSelect(championshipMatchup.id, team);
-              }}
-            />
-            <div className="h-2"></div>
-            <TeamSlot 
-              team={championshipMatchup.teamB} 
-              isWinner={championshipMatchup.winner === championshipMatchup.teamB}
-              onClick={() => {
-                const team = championshipMatchup.teamB;
-                if (team) onTeamSelect(championshipMatchup.id, team);
-              }}
-            />
-          </div>
-          
-          {championshipMatchup.winner && (
-            <div className="mt-4 pt-2 border-t border-yellow-400">
-              <p className="text-center text-sm font-bold text-yellow-800 mb-1">CHAMPION</p>
-              <div className="bg-green-100 border border-green-500 rounded-md p-2">
-                <div className="flex items-center justify-center">
-                  <span className="font-bold text-xs w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mr-2">
-                    {championshipMatchup.winner.seed}
-                  </span>
-                  <span className="font-bold">{championshipMatchup.winner.name}</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-        
         <div className="w-64">
           <div className="text-center font-bold mb-2">Final Four</div>
           <div className="relative">
@@ -244,6 +210,49 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
               }}
             />
           </div>
+        </div>
+      </div>
+      
+      {/* Championship Game - Horizontal Layout */}
+      <div className="flex flex-col items-center">
+        <div className="text-center font-bold mb-3">Championship</div>
+        <div className="border-2 border-yellow-500 rounded-lg bg-yellow-50 p-4 w-full max-w-lg">
+          <div className="flex justify-center gap-4 items-center">
+            <TeamSlot 
+              team={championshipMatchup.teamA} 
+              isWinner={championshipMatchup.winner === championshipMatchup.teamA}
+              onClick={() => {
+                const team = championshipMatchup.teamA;
+                if (team) onTeamSelect(championshipMatchup.id, team);
+              }}
+              horizontal={true}
+            />
+            <div className="text-center font-bold text-lg">vs</div>
+            <TeamSlot 
+              team={championshipMatchup.teamB} 
+              isWinner={championshipMatchup.winner === championshipMatchup.teamB}
+              onClick={() => {
+                const team = championshipMatchup.teamB;
+                if (team) onTeamSelect(championshipMatchup.id, team);
+              }}
+              horizontal={true}
+            />
+          </div>
+          
+          {/* Champion Display */}
+          {championshipMatchup.winner && (
+            <div className="mt-4 pt-2 border-t border-yellow-400">
+              <p className="text-center text-sm font-bold text-yellow-800 mb-1">CHAMPION</p>
+              <div className="bg-green-100 border border-green-500 rounded-md p-2 mx-auto max-w-xs">
+                <div className="flex items-center justify-center">
+                  <span className="font-bold text-xs w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mr-2">
+                    {championshipMatchup.winner.seed}
+                  </span>
+                  <span className="font-bold">{championshipMatchup.winner.name}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -299,7 +308,7 @@ const ModularBracket: React.FC<ModularBracketProps> = ({ bracketData, onTeamSele
         regionName="Midwest"
         onTeamSelect={onTeamSelect}
       />
-
+      
       {/* Final Four & Championship */}
       <FinalFour 
         bracketData={bracketData}
