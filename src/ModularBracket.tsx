@@ -283,8 +283,8 @@ const ModularBracket: React.FC<ModularBracketProps> = ({ bracketData, onTeamSele
       <BracketRegion
         title="East Region"
         bracketData={bracketData}
-        firstRoundStart={8}
-        firstRoundEnd={16}
+        firstRoundStart={16}
+        firstRoundEnd={24}
         regionName="East"
         onTeamSelect={onTeamSelect}
       />
@@ -293,8 +293,8 @@ const ModularBracket: React.FC<ModularBracketProps> = ({ bracketData, onTeamSele
       <BracketRegion
         title="West Region"
         bracketData={bracketData}
-        firstRoundStart={16}
-        firstRoundEnd={24}
+        firstRoundStart={8}
+        firstRoundEnd={16}
         regionName="West"
         onTeamSelect={onTeamSelect}
       />

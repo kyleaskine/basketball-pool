@@ -39,27 +39,6 @@ const ResponsiveBasketballPoolEntryForm: React.FC = () => {
         { seed: 15, name: "Bryant" },
       ]
     },
-    east: {
-      name: "East",
-      teams: [
-        { seed: 1, name: "Duke" },
-        { seed: 16, name: "AMER/MSMM" },
-        { seed: 8, name: "Mississippi St." },
-        { seed: 9, name: "Baylor" },
-        { seed: 5, name: "Oregon" },
-        { seed: 12, name: "Liberty" },
-        { seed: 4, name: "Arizona" },
-        { seed: 13, name: "Akron" },
-        { seed: 6, name: "BYU" },
-        { seed: 11, name: "VCU" },
-        { seed: 3, name: "Wisconsin" },
-        { seed: 14, name: "Montana" },
-        { seed: 7, name: "St. Mary's" },
-        { seed: 10, name: "Vanderbilt" },
-        { seed: 2, name: "Alabama" },
-        { seed: 15, name: "Robert Morris" },
-      ]
-    },
     west: {
       name: "West",
       teams: [
@@ -79,6 +58,27 @@ const ResponsiveBasketballPoolEntryForm: React.FC = () => {
         { seed: 10, name: "Arkansas" },
         { seed: 2, name: "St. John's" },
         { seed: 15, name: "Neb. Omaha" },
+      ]
+    },
+    east: {
+      name: "East",
+      teams: [
+        { seed: 1, name: "Duke" },
+        { seed: 16, name: "AMER/MSMM" },
+        { seed: 8, name: "Mississippi St." },
+        { seed: 9, name: "Baylor" },
+        { seed: 5, name: "Oregon" },
+        { seed: 12, name: "Liberty" },
+        { seed: 4, name: "Arizona" },
+        { seed: 13, name: "Akron" },
+        { seed: 6, name: "BYU" },
+        { seed: 11, name: "VCU" },
+        { seed: 3, name: "Wisconsin" },
+        { seed: 14, name: "Montana" },
+        { seed: 7, name: "St. Mary's" },
+        { seed: 10, name: "Vanderbilt" },
+        { seed: 2, name: "Alabama" },
+        { seed: 15, name: "Robert Morris" },
       ]
     },
     midwest: {

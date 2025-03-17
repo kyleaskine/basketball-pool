@@ -55,8 +55,8 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
   const getSpacing = () => {
     switch (round) {
       case 1: return 'space-y-1';
-      case 2: return 'space-y-12';
-      case 3: return 'space-y-28';
+      case 2: return 'space-y-17';
+      case 3: return 'space-y-49';
       case 4: return 'space-y-60';
       default: return 'space-y-1';
     }
@@ -66,9 +66,9 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
   const getFirstItemMargin = () => {
     switch (round) {
       case 1: return '';
-      case 2: return 'mt-8';
-      case 3: return 'mt-24';
-      case 4: return 'mt-60';
+      case 2: return 'mt-9';
+      case 3: return 'mt-25';
+      case 4: return 'mt-57';
       default: return '';
     }
   };
@@ -138,8 +138,8 @@ const ForwardRegion: React.FC<ForwardRegionProps> = ({
     <div className="flex relative">
       {/* Region name positioned in the gap between games */}
       <div className="absolute text-xl font-bold text-blue-800" style={{ 
-        left: '175px', 
-        top: '225px'
+        left: '225px', 
+        top: '255px'
       }}>
         {regionName} Region
       </div>
@@ -201,8 +201,8 @@ const ReverseRegion: React.FC<ReverseRegionProps> = ({
     <div className="flex relative">
       {/* Region name positioned in the gap between games */}
       <div className="absolute text-xl font-bold text-blue-800" style={{ 
-        right: '175px', 
-        top: '225px'
+        right: '225px', 
+        top: '255px'
       }}>
         {regionName} Region
       </div>
@@ -292,7 +292,8 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
       
       {/* Final Four Matchups */}
       <div className="flex justify-center w-full">
-        <div className="w-32 mr-2">
+        <div className="w-32 mr-2 relative">
+          {/* South vs West */}
           <div className="relative">
             <TeamSlot 
               team={finalFourMatchups[0].teamA} 
@@ -313,7 +314,7 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
             />
           </div>
         </div>
-        <div className="w-32 ml-2">
+        <div className="w-32 ml-2 relative">
           <div className="relative">
             <TeamSlot 
               team={finalFourMatchups[1].teamA} 
@@ -369,8 +370,8 @@ const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
           
           <ForwardRegion
             bracketData={bracketData}
-            firstRoundStart={16}
-            firstRoundEnd={24}
+            firstRoundStart={8}
+            firstRoundEnd={16}
             regionName="West"
             onTeamSelect={onTeamSelect}
           />
@@ -389,8 +390,8 @@ const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
         <div className="flex flex-col">
           <ReverseRegion
             bracketData={bracketData}
-            firstRoundStart={8}
-            firstRoundEnd={16}
+            firstRoundStart={16}
+            firstRoundEnd={24}
             regionName="East"
             onTeamSelect={onTeamSelect}
           />
