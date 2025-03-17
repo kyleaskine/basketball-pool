@@ -298,7 +298,7 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
     <div className="flex flex-col items-center mx-2">
       {/* Final Four Matchups */}
       <div className="flex justify-center w-full mb-3">
-        <div className="w-32 mr-2 relative">
+        <div className="w-32 mr-2">
           <div className="relative">
             <TeamSlot
               team={finalFourMatchups[0].teamA}
@@ -323,7 +323,7 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
             />
           </div>
         </div>
-        <div className="w-32 ml-2 relative">
+        <div className="w-32 ml-2">
           <div className="relative">
             <TeamSlot
               team={finalFourMatchups[1].teamA}
@@ -358,28 +358,32 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
             Championship
           </p>
           <div className="flex justify-center gap-2 items-center">
-          <div className="w-32 relative"><TeamSlot
-              team={championshipMatchup.teamA}
-              isWinner={
-                championshipMatchup.winner === championshipMatchup.teamA
-              }
-              onClick={() => {
-                const team = championshipMatchup.teamA;
-                if (team) onTeamSelect(championshipMatchup.id, team);
-              }}
-            /></div>
+            <div className="w-32">
+              <TeamSlot
+                team={championshipMatchup.teamA}
+                isWinner={
+                  championshipMatchup.winner === championshipMatchup.teamA
+                }
+                onClick={() => {
+                  const team = championshipMatchup.teamA;
+                  if (team) onTeamSelect(championshipMatchup.id, team);
+                }}
+              />
+            </div>
             <div className="text-center font-bold text-xs">vs</div>
-            <div className="w-32 relative"><TeamSlot
-              team={championshipMatchup.teamB}
-              isWinner={
-                championshipMatchup.winner === championshipMatchup.teamB
-              }
-              onClick={() => {
-                const team = championshipMatchup.teamB;
-                if (team) onTeamSelect(championshipMatchup.id, team);
-              }}
-              reversed={true}
-            /></div>
+            <div className="w-32">
+              <TeamSlot
+                team={championshipMatchup.teamB}
+                isWinner={
+                  championshipMatchup.winner === championshipMatchup.teamB
+                }
+                onClick={() => {
+                  const team = championshipMatchup.teamB;
+                  if (team) onTeamSelect(championshipMatchup.id, team);
+                }}
+                reversed={true}
+              />
+            </div>
           </div>
 
           {/* Champion Display */}
@@ -445,11 +449,23 @@ const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
 
         {/* Center - Final Four & Championship */}
         <div className="flex flex-col justify-center relative min-w-32">
-          <div className="absolute -left-19.5 min-w-70">
+          <div
+            className="absolute min-w-70"
+            style={{
+              left: "-85px",
+              width: "300px", // Explicitly set width to cover the entire Final Four area
+              zIndex: 10, // Ensure this is above other elements that might block clicks
+            }}
+          >
             <div className="text-xs font-bold text-center text-red-800 mb-1">
               Final Four
             </div>
-            <FinalFour bracketData={bracketData} onTeamSelect={onTeamSelect} />
+            <div>
+              <FinalFour
+                bracketData={bracketData}
+                onTeamSelect={onTeamSelect}
+              />
+            </div>
           </div>
         </div>
 
