@@ -6,12 +6,26 @@ interface TeamSlotProps {
   isWinner: boolean;
   onClick: () => void;
   horizontal?: boolean;
+  isIncomplete?: boolean;
+  submitAttempted?: boolean;
 }
 
-const TeamSlot: React.FC<TeamSlotProps> = ({ team, isWinner, onClick, horizontal = false }) => {
+const TeamSlot: React.FC<TeamSlotProps> = ({ 
+  team, 
+  isWinner, 
+  onClick, 
+  horizontal = false,
+  isIncomplete = false,
+  submitAttempted = false
+}) => {
+  // Only show incomplete highlight if submitAttempted is true
+  const showIncompleteHighlight = isIncomplete && submitAttempted;
+  
   if (!team) {
     return (
-      <div className={`${horizontal ? 'w-40' : 'h-10'} bg-gray-50 border border-gray-200 rounded-md flex items-center px-2 text-gray-400`}>
+      <div className={`${horizontal ? 'w-40' : 'h-10'} bg-gray-50 border border-gray-200 rounded-md flex items-center px-2 text-gray-400 ${
+        showIncompleteHighlight ? 'border-red-400 border-2 bg-red-50' : ''
+      }`}>
         TBD
       </div>
     );
@@ -21,6 +35,8 @@ const TeamSlot: React.FC<TeamSlotProps> = ({ team, isWinner, onClick, horizontal
     <div 
       className={`${horizontal ? 'w-40' : 'h-10'} border rounded-md flex items-center px-2 cursor-pointer hover:bg-blue-50 ${
         isWinner ? 'bg-blue-100 border-blue-500' : 'bg-white border-gray-300'
+      } ${
+        showIncompleteHighlight ? 'border-red-400 border-2 animate-pulse shadow-md' : ''
       }`}
       onClick={onClick}
     >
@@ -39,6 +55,8 @@ interface BracketRegionProps {
   firstRoundEnd: number;
   regionName: string;
   onTeamSelect: (matchupId: number, team: Team) => void;
+  incompleteMatchups: number[];
+  submitAttempted: boolean;
 }
 
 const BracketRegion: React.FC<BracketRegionProps> = ({
@@ -47,7 +65,9 @@ const BracketRegion: React.FC<BracketRegionProps> = ({
   firstRoundStart,
   firstRoundEnd,
   regionName,
-  onTeamSelect
+  onTeamSelect,
+  incompleteMatchups,
+  submitAttempted
 }) => {
   const firstRoundMatchups = bracketData[1].slice(firstRoundStart, firstRoundEnd);
   
@@ -61,6 +81,9 @@ const BracketRegion: React.FC<BracketRegionProps> = ({
   const eliteEightMatchups = getMatchupsForRound(4);
   
   const renderMatchup = (matchup: Matchup, noBorder = false) => {
+    // Check if this matchup is incomplete (has both teams but no winner)
+    const isIncomplete = matchup.teamA && matchup.teamB && !matchup.winner && incompleteMatchups.includes(matchup.id);
+    
     return (
       <>
         <TeamSlot 
@@ -69,6 +92,8 @@ const BracketRegion: React.FC<BracketRegionProps> = ({
           onClick={() => {
             if (matchup.teamA) onTeamSelect(matchup.id, matchup.teamA);
           }}
+          isIncomplete={isIncomplete ?? undefined}
+          submitAttempted={submitAttempted}
         />
         <div className="h-2"></div>
         <TeamSlot 
@@ -77,6 +102,8 @@ const BracketRegion: React.FC<BracketRegionProps> = ({
           onClick={() => {
             if (matchup.teamB) onTeamSelect(matchup.id, matchup.teamB);
           }}
+          isIncomplete={isIncomplete ?? undefined}
+          submitAttempted={submitAttempted}
         />
       </>
     );
@@ -152,11 +179,34 @@ const BracketRegion: React.FC<BracketRegionProps> = ({
 interface FinalFourProps {
   bracketData: BracketData;
   onTeamSelect: (matchupId: number, team: Team) => void;
+  incompleteMatchups: number[];
+  submitAttempted: boolean;
 }
 
-const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
+const FinalFour: React.FC<FinalFourProps> = ({ 
+  bracketData, 
+  onTeamSelect,
+  incompleteMatchups,
+  submitAttempted
+}) => {
   const finalFourMatchups = bracketData[5];
   const championshipMatchup = bracketData[6][0];
+  
+  // Check if matchups are incomplete
+  const isFinalFour1Incomplete = finalFourMatchups[0].teamA && finalFourMatchups[0].teamB && 
+                              !finalFourMatchups[0].winner && 
+                              incompleteMatchups.includes(finalFourMatchups[0].id);
+  
+  const isFinalFour2Incomplete = finalFourMatchups[1].teamA && finalFourMatchups[1].teamB && 
+                              !finalFourMatchups[1].winner && 
+                              incompleteMatchups.includes(finalFourMatchups[1].id);
+  
+  const isChampionshipIncomplete = championshipMatchup.teamA && championshipMatchup.teamB && 
+                                !championshipMatchup.winner && 
+                                incompleteMatchups.includes(championshipMatchup.id);
+  
+  // Only show incomplete highlighting if submitAttempted is true
+  const showIncompleteHighlighting = submitAttempted;
   
   return (
     <div className="mb-10">
@@ -176,6 +226,8 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
                 const team = finalFourMatchups[0].teamA;
                 if (team) onTeamSelect(finalFourMatchups[0].id, team);
               }}
+              isIncomplete={isFinalFour1Incomplete?? undefined}
+              submitAttempted={submitAttempted}
             />
             <div className="h-2"></div>
             <TeamSlot 
@@ -185,6 +237,8 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
                 const team = finalFourMatchups[0].teamB;
                 if (team) onTeamSelect(finalFourMatchups[0].id, team);
               }}
+              isIncomplete={isFinalFour1Incomplete?? undefined}
+              submitAttempted={submitAttempted}
             />
           </div>
         </div>
@@ -199,6 +253,8 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
                 const team = finalFourMatchups[1].teamA;
                 if (team) onTeamSelect(finalFourMatchups[1].id, team);
               }}
+              isIncomplete={isFinalFour2Incomplete?? undefined}
+              submitAttempted={submitAttempted}
             />
             <div className="h-2"></div>
             <TeamSlot 
@@ -208,6 +264,8 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
                 const team = finalFourMatchups[1].teamB;
                 if (team) onTeamSelect(finalFourMatchups[1].id, team);
               }}
+              isIncomplete={isFinalFour2Incomplete?? undefined}
+              submitAttempted={submitAttempted}
             />
           </div>
         </div>
@@ -216,7 +274,9 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
       {/* Championship Game - Horizontal Layout */}
       <div className="flex flex-col items-center">
         <div className="text-center font-bold mb-3">Championship</div>
-        <div className="border-2 border-yellow-500 rounded-lg bg-yellow-50 p-4 w-full max-w-lg">
+        <div className={`border-2 rounded-lg bg-yellow-50 p-4 w-full max-w-lg ${
+          isChampionshipIncomplete && showIncompleteHighlighting ? 'border-red-500 bg-red-50 animate-pulse' : 'border-yellow-500'
+        }`}>
           <div className="flex justify-center gap-4 items-center">
             <TeamSlot 
               team={championshipMatchup.teamA} 
@@ -226,6 +286,8 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
                 if (team) onTeamSelect(championshipMatchup.id, team);
               }}
               horizontal={true}
+              isIncomplete={isChampionshipIncomplete?? undefined}
+              submitAttempted={submitAttempted}
             />
             <div className="text-center font-bold text-lg">vs</div>
             <TeamSlot 
@@ -236,6 +298,8 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
                 if (team) onTeamSelect(championshipMatchup.id, team);
               }}
               horizontal={true}
+              isIncomplete={isChampionshipIncomplete?? undefined}
+              submitAttempted={submitAttempted}
             />
           </div>
           
@@ -262,9 +326,16 @@ const FinalFour: React.FC<FinalFourProps> = ({ bracketData, onTeamSelect }) => {
 interface ModularBracketProps {
   bracketData: BracketData;
   onTeamSelect: (matchupId: number, team: Team) => void;
+  incompleteMatchups: number[];
+  submitAttempted: boolean;
 }
 
-const ModularBracket: React.FC<ModularBracketProps> = ({ bracketData, onTeamSelect }) => {
+const ModularBracket: React.FC<ModularBracketProps> = ({ 
+  bracketData, 
+  onTeamSelect,
+  incompleteMatchups,
+  submitAttempted
+}) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md mb-6 overflow-x-auto">
       <h2 className="text-2xl font-bold mb-6 text-center">Tournament Bracket</h2>
@@ -277,6 +348,8 @@ const ModularBracket: React.FC<ModularBracketProps> = ({ bracketData, onTeamSele
         firstRoundEnd={8}
         regionName="South"
         onTeamSelect={onTeamSelect}
+        incompleteMatchups={incompleteMatchups}
+        submitAttempted={submitAttempted}
       />
       
       {/* East Region */}
@@ -287,6 +360,8 @@ const ModularBracket: React.FC<ModularBracketProps> = ({ bracketData, onTeamSele
         firstRoundEnd={24}
         regionName="East"
         onTeamSelect={onTeamSelect}
+        incompleteMatchups={incompleteMatchups}
+        submitAttempted={submitAttempted}
       />
       
       {/* West Region */}
@@ -297,6 +372,8 @@ const ModularBracket: React.FC<ModularBracketProps> = ({ bracketData, onTeamSele
         firstRoundEnd={16}
         regionName="West"
         onTeamSelect={onTeamSelect}
+        incompleteMatchups={incompleteMatchups}
+        submitAttempted={submitAttempted}
       />
       
       {/* Midwest Region */}
@@ -307,23 +384,17 @@ const ModularBracket: React.FC<ModularBracketProps> = ({ bracketData, onTeamSele
         firstRoundEnd={32}
         regionName="Midwest"
         onTeamSelect={onTeamSelect}
+        incompleteMatchups={incompleteMatchups}
+        submitAttempted={submitAttempted}
       />
       
       {/* Final Four & Championship */}
       <FinalFour 
         bracketData={bracketData}
         onTeamSelect={onTeamSelect}
+        incompleteMatchups={incompleteMatchups}
+        submitAttempted={submitAttempted}
       />
-      
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded">
-        <h3 className="font-bold text-blue-800 mb-2">How to Complete Your Bracket</h3>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>Click on a team name to select it as the winner of that matchup</li>
-          <li>Winners automatically advance to the next round</li>
-          <li>Complete your bracket by selecting a champion</li>
-          <li>Use the buttons below to generate random picks or select all favorites</li>
-        </ul>
-      </div>
     </div>
   );
 };

@@ -24,4 +24,4 @@ yarn-error.log*
 
 #created files
 package-lock.json
-/src/output.css
+src/output.css
