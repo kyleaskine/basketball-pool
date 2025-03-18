@@ -74,7 +74,7 @@ const App: React.FC = () => {
                     d="M12 8c3.31 0 6-2.69 6-6H6c0 3.31 2.69 6 6 6zm0 2c-3.31 0-6 2.69-6 6h12c0-3.31-2.69-6-6-6z"
                   />
                 </svg>
-                <Link to="/" className="text-xl font-bold">Basketball Pool 2025</Link>
+                <Link to="/" className="text-xl font-bold">Kyle's Basketball Pool 2025</Link>
               </div>
               <div className="flex space-x-4 items-center">
                 <Link to="/entry" className="text-white hover:text-blue-200">
@@ -136,7 +136,7 @@ const App: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="mb-4 md:mb-0">
-                <p className="text-sm">© 2025 Basketball Pool. All rights reserved.</p>
+                <p className="text-sm">© 2025 Kyle Askine</p>
               </div>
               <div className="flex space-x-4">
                 <Link to="/rules" className="text-gray-300 hover:text-white">Rules</Link>
