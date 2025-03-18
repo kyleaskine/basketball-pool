@@ -3,6 +3,12 @@ import { Team, Matchup, UserInfo, BracketData, Regions } from "./types";
 import ModularBracket from "./ModularBracket";
 import PrintStyleCompactBracket from "./PrintStyleCompactBracket";
 
+// Define props type for the component with onSubmit handler
+interface ResponsiveBasketballPoolEntryFormProps {
+  onSubmit?: (formData: { userInfo: UserInfo; bracketData: BracketData }) => void;
+  isSubmitting?: boolean;
+}
+
 // Define a proper props type for the UserInfoForm
 interface UserInfoFormProps {
   userInfo: UserInfo;
@@ -169,7 +175,10 @@ const UserInfoForm = React.memo(
 );
 
 // Create a wrapper component for the entire tournament app
-const ResponsiveBasketballPoolEntryForm: React.FC = () => {
+const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryFormProps> = ({ 
+  onSubmit, 
+  isSubmitting = false 
+}) => {
   // Use a stable React.memo component for the app content
   const AppContent = React.memo(() => {
     // State management
@@ -788,14 +797,22 @@ const ResponsiveBasketballPoolEntryForm: React.FC = () => {
       }
 
       if (isValid) {
-        // In a real implementation, you'd submit the form data
-        alert("Entry submitted successfully!");
+        if (onSubmit) {
+          // Call the onSubmit prop with form data if provided
+          onSubmit({
+            userInfo,
+            bracketData
+          });
+        } else {
+          // Default behavior if no onSubmit provided
+          alert("Entry submitted successfully!");
+        }
       } else {
         // Show validation errors and scroll to top of form
         formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         alert("Please fix the errors in the form before submitting.");
       }
-    }, [validateForm, bracketData, validationErrors]);
+    }, [validateForm, bracketData, validationErrors, userInfo, onSubmit]);
 
     const handleRandomPicks = useCallback((): void => {
       // Generate random picks by simulating selections through the bracket
@@ -933,30 +950,35 @@ const ResponsiveBasketballPoolEntryForm: React.FC = () => {
         <button
           onClick={handleSubmit}
           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+          disabled={isSubmitting}
         >
-          Submit Entry
+          {isSubmitting ? "Submitting..." : "Submit Entry"}
         </button>
         <button
           onClick={handleClearForm}
           className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          disabled={isSubmitting}
         >
           Clear Form
         </button>
         <button
           onClick={handleRandomPicks}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          disabled={isSubmitting}
         >
           Random Picks
         </button>
         <button
           onClick={handleFavoritesPicks}
           className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+          disabled={isSubmitting}
         >
           All Favorites
         </button>
         <button
           onClick={toggleViewMode}
           className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+          disabled={isSubmitting}
         >
           {useCompactView() ? "Switch to Regular View" : "Switch to Compact View"}
         </button>
@@ -1057,7 +1079,7 @@ const ResponsiveBasketballPoolEntryForm: React.FC = () => {
       </>
     );
   });
-
+  
   // Stable container that doesn't re-render with state changes
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
