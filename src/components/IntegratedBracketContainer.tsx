@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ResponsiveBasketballPoolEntryForm from '../BasketballPoolEntryForm';
 import { BracketData, UserInfo } from '../types';
-import { bracketServices } from '../services/api';
+import { bracketServices, authServices } from '../services/api';
 
 interface FormData {
   userInfo: UserInfo;
@@ -23,6 +23,9 @@ const IntegratedBracketContainer: React.FC = () => {
       // Extract user info and bracket data from the form
       const { userInfo, bracketData } = formData;
       
+      // First, check if this user exists and create if not
+      const userToken = await authServices.createOrGetUser(userInfo.email);
+      
       // Prepare data for API
       const bracketSubmission = {
         userEmail: userInfo.email,
@@ -37,12 +40,19 @@ const IntegratedBracketContainer: React.FC = () => {
       // Store edit token in local storage for easy access
       localStorage.setItem('bracketEditToken', response.editToken);
       
+      // Store user token if we have it
+      if (userToken) {
+        localStorage.setItem(`userToken_${userInfo.email}`, userToken);
+      }
+      
       // Redirect to success page
       navigate('/success', { 
         state: { 
           bracketId: response._id,
           editToken: response.editToken,
-          participantName: response.participantName
+          participantName: response.participantName,
+          userEmail: userInfo.email,
+          userToken: userToken
         }
       });
     } catch (error) {

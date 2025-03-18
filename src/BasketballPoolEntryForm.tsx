@@ -7,6 +7,8 @@ import PrintStyleCompactBracket from "./PrintStyleCompactBracket";
 interface ResponsiveBasketballPoolEntryFormProps {
   onSubmit?: (formData: { userInfo: UserInfo; bracketData: BracketData }) => void;
   isSubmitting?: boolean;
+  initialUserInfo?: UserInfo;
+  initialBracketData?: BracketData;
 }
 
 // Define a proper props type for the UserInfoForm
@@ -177,24 +179,12 @@ const UserInfoForm = React.memo(
 // Create a wrapper component for the entire tournament app
 const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryFormProps> = ({ 
   onSubmit, 
-  isSubmitting = false 
+  isSubmitting = false,
+  initialUserInfo,
+  initialBracketData 
 }) => {
   // Use a stable React.memo component for the app content
   const AppContent = React.memo(() => {
-    // State management
-    const [userInfo, setUserInfo] = useState<UserInfo>({
-      firstName: "",
-      lastName: "",
-      email: "",
-      contact: "",
-    });
-    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-    const [submitAttempted, setSubmitAttempted] = useState<boolean>(false);
-    const [isLargeScreen, setIsLargeScreen] = useState<boolean>(false);
-    const [preferCompact, setPreferCompact] = useState<boolean | null>(null);
-    // Add state to track incomplete matchups
-    const [incompleteMatchups, setIncompleteMatchups] = useState<number[]>([]);
-
     // Add refs for scrolling
     const formRef = React.useRef<HTMLDivElement>(null);
     const bracketRef = React.useRef<HTMLDivElement>(null);
@@ -410,8 +400,23 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
       return bracket;
     }, [regions]);
 
-    // Initialize the bracket data
-    const [bracketData, setBracketData] = useState<BracketData>(initializeBracket);
+    // State management
+    const [userInfo, setUserInfo] = useState<UserInfo>(initialUserInfo || {
+      firstName: "",
+      lastName: "",
+      email: "",
+      contact: "",
+    });
+    
+    const [bracketData, setBracketData] = useState<BracketData>(
+      initialBracketData || initializeBracket()
+    );
+    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+    const [submitAttempted, setSubmitAttempted] = useState<boolean>(false);
+    const [isLargeScreen, setIsLargeScreen] = useState<boolean>(false);
+    const [preferCompact, setPreferCompact] = useState<boolean | null>(null);
+    // Add state to track incomplete matchups
+    const [incompleteMatchups, setIncompleteMatchups] = useState<number[]>([]);
 
     // Function to find incomplete matchups
     const findIncompleteMatchups = useCallback(() => {
@@ -812,7 +817,7 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
         formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         alert("Please fix the errors in the form before submitting.");
       }
-    }, [validateForm, bracketData, validationErrors, userInfo, onSubmit]);
+    }, [validateForm, bracketData, validationErrors, userInfo, onSubmit, formRef, bracketRef]);
 
     const handleRandomPicks = useCallback((): void => {
       // Generate random picks by simulating selections through the bracket

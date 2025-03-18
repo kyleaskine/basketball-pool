@@ -3,7 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 
 const SuccessPage = () => {
   const location = useLocation();
-  const { bracketId, editToken, participantName } = location.state || {};
+  const { bracketId, editToken, participantName, userEmail, userToken } = location.state || {};
   
   // If no data was passed, show a generic success message
   if (!bracketId || !editToken) {
@@ -20,8 +20,13 @@ const SuccessPage = () => {
     );
   }
 
-  // Create a URL for editing the bracket
+  // Create URLs for editing and viewing
   const editUrl = `${window.location.origin}/bracket/edit/${bracketId}?token=${editToken}`;
+  const viewUrl = `${window.location.origin}/bracket/view/${bracketId}?token=${editToken}`;
+  
+  // Create URL for user's brackets if we have user token
+  const userBracketsUrl = userEmail && userToken ? 
+    `${window.location.origin}/user/brackets/${userEmail}?token=${userToken}` : null;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -34,24 +39,72 @@ const SuccessPage = () => {
         </div>
 
         <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">Important: Save Your Edit Link</h2>
+          <h2 className="text-xl font-semibold mb-2">Important: Save Your Links</h2>
           <p className="mb-4">
-            You can use the link below to make changes to your bracket before the tournament starts.
+            You can use the links below to view or edit your bracket before the tournament starts.
           </p>
           
-          <div className="bg-gray-100 p-3 rounded border mb-2 break-all">
-            <a href={editUrl} className="text-blue-600 hover:underline">{editUrl}</a>
+          {/* Edit Link */}
+          <div className="mb-4">
+            <h3 className="font-semibold text-gray-700">Edit Link (before tournament starts)</h3>
+            <div className="bg-gray-100 p-3 rounded border mb-2 break-all">
+              <a href={editUrl} className="text-blue-600 hover:underline">{editUrl}</a>
+            </div>
+            
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(editUrl);
+                alert("Edit link copied to clipboard!");
+              }}
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+            >
+              Copy to Clipboard
+            </button>
           </div>
           
-          <button 
-            onClick={() => {
-              navigator.clipboard.writeText(editUrl);
-              alert("Edit link copied to clipboard!");
-            }}
-            className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-          >
-            Copy to Clipboard
-          </button>
+          {/* View Link */}
+          <div className="mb-4">
+            <h3 className="font-semibold text-gray-700">View Link (works during tournament)</h3>
+            <div className="bg-gray-100 p-3 rounded border mb-2 break-all">
+              <a href={viewUrl} className="text-blue-600 hover:underline">{viewUrl}</a>
+            </div>
+            
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(viewUrl);
+                alert("View link copied to clipboard!");
+              }}
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+            >
+              Copy to Clipboard
+            </button>
+          </div>
+          
+          {/* All User's Brackets Link - only if we have user token */}
+          {userBracketsUrl && (
+            <div className="mb-4">
+              <h3 className="font-semibold text-gray-700">Access All Your Brackets</h3>
+              <div className="bg-gray-100 p-3 rounded border mb-2 break-all">
+                <a href={userBracketsUrl} className="text-blue-600 hover:underline">
+                  {userBracketsUrl}
+                </a>
+              </div>
+              
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(userBracketsUrl);
+                  alert("User brackets link copied to clipboard!");
+                }}
+                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+              >
+                Copy to Clipboard
+              </button>
+              
+              <p className="mt-2 text-sm text-gray-600">
+                Save this link to access all your brackets from this email address.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
@@ -71,6 +124,14 @@ const SuccessPage = () => {
           >
             Edit My Bracket
           </a>
+          {userBracketsUrl && (
+            <a 
+              href={userBracketsUrl} 
+              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+            >
+              View All My Brackets
+            </a>
+          )}
         </div>
       </div>
     </div>

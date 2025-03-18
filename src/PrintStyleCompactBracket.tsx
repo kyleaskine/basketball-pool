@@ -8,6 +8,8 @@ interface TeamSlotProps {
   reversed?: boolean;
   isIncomplete?: boolean;
   submitAttempted?: boolean;
+  readOnly?: boolean;
+  isCorrectPick?: boolean;
 }
 
 const TeamSlot: React.FC<TeamSlotProps> = ({
@@ -16,7 +18,9 @@ const TeamSlot: React.FC<TeamSlotProps> = ({
   onClick,
   reversed = false,
   isIncomplete = false,
-  submitAttempted = false
+  submitAttempted = false,
+  readOnly = false,
+  isCorrectPick = false
 }) => {
   // Only show incomplete highlight if submitAttempted is true
   const showIncompleteHighlight = isIncomplete && submitAttempted;
@@ -35,14 +39,27 @@ const TeamSlot: React.FC<TeamSlotProps> = ({
     );
   }
 
+  // Determine the background and border based on various states
+  let bgAndBorderClasses = 'bg-white border-gray-300';
+  
+  if (isWinner) {
+    if (isCorrectPick) {
+      bgAndBorderClasses = 'bg-green-100 border-green-500'; // Correct pick
+    } else if (readOnly && isWinner) {
+      bgAndBorderClasses = 'bg-red-50 border-red-300'; // Incorrect pick when highlighting
+    } else {
+      bgAndBorderClasses = 'bg-blue-100 border-blue-500'; // Standard selection
+    }
+  }
+
   return (
     <div
-      className={`h-7 border rounded-md flex items-center px-2 cursor-pointer hover:bg-blue-50 text-xs ${
-        isWinner ? "bg-blue-100 border-blue-500" : "bg-white border-gray-300"
-      } ${reversed ? "flex-row-reverse" : ""} ${
+      className={`h-7 border rounded-md flex items-center px-2 text-xs ${
+        readOnly ? 'cursor-default' : 'cursor-pointer hover:bg-blue-50'
+      } ${bgAndBorderClasses} ${reversed ? "flex-row-reverse" : ""} ${
         showIncompleteHighlight ? 'border-red-400 border-2 animate-pulse shadow-md' : ''
       }`}
-      onClick={onClick}
+      onClick={readOnly ? undefined : onClick}
     >
       <span
         className={`font-bold text-[10px] w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center ${
@@ -65,6 +82,9 @@ interface RegionColumnProps {
   roundLabel?: string;
   incompleteMatchups: number[];
   submitAttempted: boolean;
+  readOnly?: boolean;
+  highlightCorrectPicks?: boolean;
+  actualResults?: BracketData;
 }
 
 const RegionColumn: React.FC<RegionColumnProps> = ({
@@ -75,7 +95,10 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
   showLabel,
   roundLabel,
   incompleteMatchups,
-  submitAttempted
+  submitAttempted,
+  readOnly = false,
+  highlightCorrectPicks = false,
+  actualResults
 }) => {
   // Calculate correct spacing based on round
   const getSpacing = () => {
@@ -109,6 +132,18 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
     }
   };
 
+  // Function to check if a pick is correct
+  const isCorrectPick = (matchup: Matchup, team: Team | null): boolean => {
+    if (!highlightCorrectPicks || !actualResults || !team || !matchup.winner) return false;
+    
+    // Find the corresponding matchup in the actual results
+    const actualMatchup = actualResults[matchup.round].find(m => m.id === matchup.id);
+    if (!actualMatchup || !actualMatchup.winner) return false;
+    
+    // Compare the winner
+    return actualMatchup.winner.name === team.name && actualMatchup.winner.seed === team.seed;
+  };
+
   return (
     <div className={`w-32 ${reversed ? "ml-1" : "mr-1"}`}>
       {showLabel && roundLabel && (
@@ -136,6 +171,8 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
                 reversed={reversed}
                 isIncomplete={isIncomplete ?? undefined}
                 submitAttempted={submitAttempted}
+                readOnly={readOnly}
+                isCorrectPick={isCorrectPick(matchup, matchup.teamA)}
               />
               <div className="h-1"></div>
               <TeamSlot
@@ -147,6 +184,8 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
                 reversed={reversed}
                 isIncomplete={isIncomplete ?? undefined}
                 submitAttempted={submitAttempted}
+                readOnly={readOnly}
+                isCorrectPick={isCorrectPick(matchup, matchup.teamB)}
               />
             </div>
           );
@@ -165,6 +204,9 @@ interface ForwardRegionProps {
   onTeamSelect: (matchupId: number, team: Team) => void;
   incompleteMatchups: number[];
   submitAttempted: boolean;
+  readOnly?: boolean;
+  highlightCorrectPicks?: boolean;
+  actualResults?: BracketData;
 }
 
 const ForwardRegion: React.FC<ForwardRegionProps> = ({
@@ -175,7 +217,10 @@ const ForwardRegion: React.FC<ForwardRegionProps> = ({
   regionName,
   onTeamSelect,
   incompleteMatchups,
-  submitAttempted
+  submitAttempted,
+  readOnly = false,
+  highlightCorrectPicks = false,
+  actualResults
 }) => {
   const firstRoundMatchups = bracketData[1].slice(
     firstRoundStart,
@@ -211,6 +256,9 @@ const ForwardRegion: React.FC<ForwardRegionProps> = ({
         roundLabel="First Round"
         incompleteMatchups={incompleteMatchups}
         submitAttempted={submitAttempted}
+        readOnly={readOnly}
+        highlightCorrectPicks={highlightCorrectPicks}
+        actualResults={actualResults}
       />
       <RegionColumn
         matchups={secondRoundMatchups}
@@ -220,6 +268,9 @@ const ForwardRegion: React.FC<ForwardRegionProps> = ({
         roundLabel="Second Round"
         incompleteMatchups={incompleteMatchups}
         submitAttempted={submitAttempted}
+        readOnly={readOnly}
+        highlightCorrectPicks={highlightCorrectPicks}
+        actualResults={actualResults}
       />
       <RegionColumn
         matchups={sweetSixteenMatchups}
@@ -229,6 +280,9 @@ const ForwardRegion: React.FC<ForwardRegionProps> = ({
         roundLabel="Sweet 16"
         incompleteMatchups={incompleteMatchups}
         submitAttempted={submitAttempted}
+        readOnly={readOnly}
+        highlightCorrectPicks={highlightCorrectPicks}
+        actualResults={actualResults}
       />
       <RegionColumn
         matchups={eliteEightMatchups}
@@ -238,6 +292,9 @@ const ForwardRegion: React.FC<ForwardRegionProps> = ({
         roundLabel="Elite 8"
         incompleteMatchups={incompleteMatchups}
         submitAttempted={submitAttempted}
+        readOnly={readOnly}
+        highlightCorrectPicks={highlightCorrectPicks}
+        actualResults={actualResults}
       />
     </div>
   );
@@ -252,6 +309,9 @@ interface ReverseRegionProps {
   onTeamSelect: (matchupId: number, team: Team) => void;
   incompleteMatchups: number[];
   submitAttempted: boolean;
+  readOnly?: boolean;
+  highlightCorrectPicks?: boolean;
+  actualResults?: BracketData;
 }
 
 const ReverseRegion: React.FC<ReverseRegionProps> = ({
@@ -262,7 +322,10 @@ const ReverseRegion: React.FC<ReverseRegionProps> = ({
   regionName,
   onTeamSelect,
   incompleteMatchups,
-  submitAttempted
+  submitAttempted,
+  readOnly = false,
+  highlightCorrectPicks = false,
+  actualResults
 }) => {
   const firstRoundMatchups = bracketData[1].slice(
     firstRoundStart,
@@ -299,6 +362,9 @@ const ReverseRegion: React.FC<ReverseRegionProps> = ({
         roundLabel="Elite 8"
         incompleteMatchups={incompleteMatchups}
         submitAttempted={submitAttempted}
+        readOnly={readOnly}
+        highlightCorrectPicks={highlightCorrectPicks}
+        actualResults={actualResults}
       />
       <RegionColumn
         matchups={sweetSixteenMatchups}
@@ -309,6 +375,9 @@ const ReverseRegion: React.FC<ReverseRegionProps> = ({
         roundLabel="Sweet 16"
         incompleteMatchups={incompleteMatchups}
         submitAttempted={submitAttempted}
+        readOnly={readOnly}
+        highlightCorrectPicks={highlightCorrectPicks}
+        actualResults={actualResults}
       />
       <RegionColumn
         matchups={secondRoundMatchups}
@@ -319,6 +388,9 @@ const ReverseRegion: React.FC<ReverseRegionProps> = ({
         roundLabel="Second Round"
         incompleteMatchups={incompleteMatchups}
         submitAttempted={submitAttempted}
+        readOnly={readOnly}
+        highlightCorrectPicks={highlightCorrectPicks}
+        actualResults={actualResults}
       />
       <RegionColumn
         matchups={firstRoundMatchups}
@@ -329,6 +401,9 @@ const ReverseRegion: React.FC<ReverseRegionProps> = ({
         roundLabel="First Round"
         incompleteMatchups={incompleteMatchups}
         submitAttempted={submitAttempted}
+        readOnly={readOnly}
+        highlightCorrectPicks={highlightCorrectPicks}
+        actualResults={actualResults}
       />
     </div>
   );
@@ -339,13 +414,19 @@ interface FinalFourProps {
   onTeamSelect: (matchupId: number, team: Team) => void;
   incompleteMatchups: number[];
   submitAttempted: boolean;
+  readOnly?: boolean;
+  highlightCorrectPicks?: boolean;
+  actualResults?: BracketData;
 }
 
 const FinalFour: React.FC<FinalFourProps> = ({ 
   bracketData, 
   onTeamSelect,
   incompleteMatchups,
-  submitAttempted
+  submitAttempted,
+  readOnly = false,
+  highlightCorrectPicks = false,
+  actualResults
 }) => {
   const finalFourMatchups = bracketData[5];
   const championshipMatchup = bracketData[6][0];
@@ -362,6 +443,18 @@ const FinalFour: React.FC<FinalFourProps> = ({
   const isChampionshipIncomplete = championshipMatchup.teamA && championshipMatchup.teamB && 
                                 !championshipMatchup.winner && 
                                 incompleteMatchups.includes(championshipMatchup.id);
+
+  // Function to check if a pick is correct
+  const isCorrectPick = (matchup: Matchup, team: Team | null): boolean => {
+    if (!highlightCorrectPicks || !actualResults || !team || !matchup.winner) return false;
+    
+    // Find the corresponding matchup in the actual results
+    const actualMatchup = actualResults[matchup.round].find(m => m.id === matchup.id);
+    if (!actualMatchup || !actualMatchup.winner) return false;
+    
+    // Compare the winner
+    return actualMatchup.winner.name === team.name && actualMatchup.winner.seed === team.seed;
+  };
 
   return (
     <div className="flex flex-col items-center mx-2">
@@ -380,6 +473,8 @@ const FinalFour: React.FC<FinalFourProps> = ({
               }}
               isIncomplete={isFinalFour1Incomplete?? undefined}
               submitAttempted={submitAttempted}
+              readOnly={readOnly}
+              isCorrectPick={isCorrectPick(finalFourMatchups[0], finalFourMatchups[0].teamA)}
             />
             <div className="h-1"></div>
             <TeamSlot
@@ -393,6 +488,8 @@ const FinalFour: React.FC<FinalFourProps> = ({
               }}
               isIncomplete={isFinalFour1Incomplete?? undefined}
               submitAttempted={submitAttempted}
+              readOnly={readOnly}
+              isCorrectPick={isCorrectPick(finalFourMatchups[0], finalFourMatchups[0].teamB)}
             />
           </div>
         </div>
@@ -410,6 +507,8 @@ const FinalFour: React.FC<FinalFourProps> = ({
               reversed={true}
               isIncomplete={isFinalFour2Incomplete?? undefined}
               submitAttempted={submitAttempted}
+              readOnly={readOnly}
+              isCorrectPick={isCorrectPick(finalFourMatchups[1], finalFourMatchups[1].teamA)}
             />
             <div className="h-1"></div>
             <TeamSlot
@@ -424,6 +523,8 @@ const FinalFour: React.FC<FinalFourProps> = ({
               reversed={true}
               isIncomplete={isFinalFour2Incomplete?? undefined}
               submitAttempted={submitAttempted}
+              readOnly={readOnly}
+              isCorrectPick={isCorrectPick(finalFourMatchups[1], finalFourMatchups[1].teamB)}
             />
           </div>
         </div>
@@ -451,6 +552,8 @@ const FinalFour: React.FC<FinalFourProps> = ({
                 }}
                 isIncomplete={isChampionshipIncomplete?? undefined}
                 submitAttempted={submitAttempted}
+                readOnly={readOnly}
+                isCorrectPick={isCorrectPick(championshipMatchup, championshipMatchup.teamA)}
               />
             </div>
             <div className="text-center font-bold text-xs">vs</div>
@@ -467,6 +570,8 @@ const FinalFour: React.FC<FinalFourProps> = ({
                 reversed={true}
                 isIncomplete={isChampionshipIncomplete?? undefined}
                 submitAttempted={submitAttempted}
+                readOnly={readOnly}
+                isCorrectPick={isCorrectPick(championshipMatchup, championshipMatchup.teamB)}
               />
             </div>
           </div>
@@ -477,7 +582,12 @@ const FinalFour: React.FC<FinalFourProps> = ({
               <p className="text-center text-xs font-bold text-yellow-800 mb-0.5">
                 CHAMPION
               </p>
-              <div className="bg-green-100 border border-green-500 rounded-md p-1 mx-auto">
+              <div className={`border rounded-md p-1 mx-auto ${
+                highlightCorrectPicks && actualResults && actualResults[6][0].winner ? 
+                  (actualResults[6][0].winner.name === championshipMatchup.winner.name ? 
+                    'bg-green-100 border-green-500' : 'bg-red-50 border-red-300') : 
+                  'bg-green-100 border-green-500'
+              }`}>
                 <div className="flex items-center justify-center">
                   <span className="font-bold text-[10px] w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center mr-1">
                     {championshipMatchup.winner.seed}
@@ -497,16 +607,22 @@ const FinalFour: React.FC<FinalFourProps> = ({
 
 interface PrintStyleCompactBracketProps {
   bracketData: BracketData;
-  onTeamSelect: (matchupId: number, team: Team) => void;
-  incompleteMatchups: number[];
-  submitAttempted: boolean;
+  onTeamSelect?: (matchupId: number, team: Team) => void;
+  incompleteMatchups?: number[];
+  submitAttempted?: boolean;
+  readOnly?: boolean;
+  highlightCorrectPicks?: boolean;
+  actualResults?: BracketData;
 }
 
 const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
   bracketData,
-  onTeamSelect,
-  incompleteMatchups,
-  submitAttempted
+  onTeamSelect = () => {},
+  incompleteMatchups = [],
+  submitAttempted = false,
+  readOnly = false,
+  highlightCorrectPicks = false,
+  actualResults
 }) => {
   return (
     <div className="bg-white p-4 rounded-lg shadow-md mb-6 overflow-x-auto">
@@ -524,6 +640,9 @@ const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
             onTeamSelect={onTeamSelect}
             incompleteMatchups={incompleteMatchups}
             submitAttempted={submitAttempted}
+            readOnly={readOnly}
+            highlightCorrectPicks={highlightCorrectPicks}
+            actualResults={actualResults}
           />
 
           <div className="my-5"></div>
@@ -537,6 +656,9 @@ const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
             onTeamSelect={onTeamSelect}
             incompleteMatchups={incompleteMatchups}
             submitAttempted={submitAttempted}
+            readOnly={readOnly}
+            highlightCorrectPicks={highlightCorrectPicks}
+            actualResults={actualResults}
           />
         </div>
 
@@ -559,6 +681,9 @@ const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
                 onTeamSelect={onTeamSelect}
                 incompleteMatchups={incompleteMatchups}
                 submitAttempted={submitAttempted}
+                readOnly={readOnly}
+                highlightCorrectPicks={highlightCorrectPicks}
+                actualResults={actualResults}
               />
             </div>
           </div>
@@ -575,6 +700,9 @@ const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
             onTeamSelect={onTeamSelect}
             incompleteMatchups={incompleteMatchups}
             submitAttempted={submitAttempted}
+            readOnly={readOnly}
+            highlightCorrectPicks={highlightCorrectPicks}
+            actualResults={actualResults}
           />
 
           <div className="my-5"></div>
@@ -588,6 +716,9 @@ const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
             onTeamSelect={onTeamSelect}
             incompleteMatchups={incompleteMatchups}
             submitAttempted={submitAttempted}
+            readOnly={readOnly}
+            highlightCorrectPicks={highlightCorrectPicks}
+            actualResults={actualResults}
           />
         </div>
       </div>

@@ -1,9 +1,59 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import HomePage from './components/HomePage';
 import IntegratedBracketContainer from './components/IntegratedBracketContainer';
 import SuccessPage from './components/SuccessPage';
+import BracketEdit from './components/BracketEdit';
+import BracketView from './components/BracketView';
+import UserBrackets from './components/UserBrackets';
+import UserBracketsByEmail from './components/UserBracketsByEmail';
+import Login from './components/Login';
+import AdminDashboard from './components/admin/AdminDashboard';
+import AdminUpdates from './components/admin/AdminUpdates';
+import AdminUpdateForm from './components/admin/AdminUpdateForm';
+import { adminAuthServices } from './services/api';
 
 const App: React.FC = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  
+  // Check login status on component mount
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const token = localStorage.getItem('token');
+      const loggedIn = Boolean(token);
+      setIsLoggedIn(loggedIn);
+      
+      // Check if user is admin
+      if (loggedIn) {
+        try {
+          const adminStatus = await adminAuthServices.isAdmin();
+          setIsAdmin(adminStatus);
+        } catch (error) {
+          setIsAdmin(false);
+        }
+      }
+    };
+    
+    // Initial check
+    checkLoginStatus();
+    
+    // Listen for storage events (for when token is added/removed in another tab)
+    window.addEventListener('storage', checkLoginStatus);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('storage', checkLoginStatus);
+    };
+  }, []);
+  
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    setIsAdmin(false);
+    window.location.href = '/';
+  };
+  
   return (
     <Router>
       <div className="min-h-screen bg-gray-100">
@@ -26,10 +76,32 @@ const App: React.FC = () => {
                 </svg>
                 <Link to="/" className="text-xl font-bold">Basketball Pool 2025</Link>
               </div>
-              <div>
-                <button className="px-3 py-1 rounded bg-blue-700 hover:bg-blue-600">
-                  Sign In
-                </button>
+              <div className="flex space-x-4 items-center">
+                <Link to="/entry" className="text-white hover:text-blue-200">
+                  Enter Bracket
+                </Link>
+                {isAdmin && (
+                  <Link to="/admin" className="text-white hover:text-blue-200">
+                    Admin
+                  </Link>
+                )}
+                {isLoggedIn ? (
+                  <>
+                    <Link to="/user/brackets" className="text-white hover:text-blue-200">
+                      My Brackets
+                    </Link>
+                    <button 
+                      onClick={handleLogout}
+                      className="px-3 py-1 rounded bg-blue-700 hover:bg-blue-600"
+                    >
+                      Log Out
+                    </button>
+                  </>
+                ) : (
+                  <Link to="/login" className="px-3 py-1 rounded bg-blue-700 hover:bg-blue-600">
+                    Sign In
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -37,8 +109,23 @@ const App: React.FC = () => {
 
         <main className="py-4">
           <Routes>
-            <Route path="/" element={<IntegratedBracketContainer />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/entry" element={<IntegratedBracketContainer />} />
             <Route path="/success" element={<SuccessPage />} />
+            <Route path="/bracket/edit/:id" element={<BracketEdit />} />
+            <Route path="/bracket/view/:id" element={<BracketView />} />
+            <Route path="/user/brackets" element={<UserBrackets />} />
+            <Route path="/user/brackets/:email" element={<UserBracketsByEmail />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/auth/verify" element={<Login />} />
+            
+            {/* Admin routes */}
+            <Route path="/admin/*" element={<AdminDashboard />}>
+              <Route path="updates" element={<AdminUpdates />} />
+              <Route path="updates/new" element={<AdminUpdateForm />} />
+              <Route path="updates/edit/:id" element={<AdminUpdateForm />} />
+            </Route>
+            
             <Route path="/rules" element={<div className="container mx-auto px-4">Rules Page</div>} />
             <Route path="/contact" element={<div className="container mx-auto px-4">Contact Page</div>} />
             <Route path="/leaderboard" element={<div className="container mx-auto px-4">Leaderboard Page</div>} />
