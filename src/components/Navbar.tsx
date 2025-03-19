@@ -46,7 +46,7 @@ const Navbar: React.FC = () => {
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="text-white font-bold text-xl">
-                March Madness 2025
+                Kyle's Basketball Pool 2025
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">

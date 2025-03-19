@@ -186,7 +186,7 @@ const UserInfoForm = React.memo(
               htmlFor="contact"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Who told you about this pool?
+              Who told you about this pool? Only necessary if you don't know Kyle.
             </label>
             <input
               ref={contactRef}
@@ -1109,7 +1109,7 @@ const ResponsiveBasketballPoolEntryForm: React.FC<
       <>
         <header className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-blue-800">
-            March Madness Basketball Pool 2025
+            Kyle's Basketball Pool 2025
           </h1>
           <p className="text-gray-600 mt-2">
             Fill out your bracket and submit your entry before the tournament
@@ -1162,14 +1162,6 @@ const ResponsiveBasketballPoolEntryForm: React.FC<
         </div>
 
         <ControlButtons />
-
-        <footer className="mt-8 text-center text-gray-500 text-sm">
-          <p>© 2025 Basketball Pool. All rights reserved.</p>
-          <p className="mt-1">
-            Tournament games: March 20-April 7, 2025 • Championship: April 7 at
-            Alamodome
-          </p>
-        </footer>
       </>
     );
   });

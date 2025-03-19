@@ -105,7 +105,7 @@ const HomePage: React.FC = () => {
         <div className="bg-blue-800 text-white rounded-lg shadow-xl overflow-hidden mb-12">
           <div className="md:flex">
             <div className="p-8 md:w-2/3">
-              <h1 className="text-4xl font-bold mb-4">March Madness 2025</h1>
+              <h1 className="text-4xl font-bold mb-4">Kyle's Basketball Pool 2025</h1>
               <p className="text-xl mb-6">
                 Join the excitement of college basketball's biggest tournament!
                 Fill out your bracket and compete with friends, family, and

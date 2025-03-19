@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { authServices } from '../services/api';
 
 const Footer: React.FC = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const currentYear = new Date().getFullYear();
-  
+
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const loggedIn = authServices.isLoggedIn();
+      setIsLoggedIn(loggedIn);
+    };
+
+    checkLoginStatus();
+  }, []);
+
   return (
     <footer className="bg-blue-800 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -40,16 +51,19 @@ const Footer: React.FC = () => {
             <div>
               <h3 className="font-semibold mb-2">Account</h3>
               <ul className="space-y-1">
-                <li>
-                  <Link to="/login" className="text-gray-300 hover:text-white text-sm">
-                    Sign In
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/brackets" className="text-gray-300 hover:text-white text-sm">
-                    My Brackets
-                  </Link>
-                </li>
+                {isLoggedIn ? (
+                  <li>
+                    <Link to="/brackets" className="text-gray-300 hover:text-white text-sm">
+                      My Brackets
+                    </Link>
+                  </li>
+                ) : (
+                  <li>
+                    <Link to="/login" className="text-gray-300 hover:text-white text-sm">
+                      Sign In
+                    </Link>
+                  </li>
+                )}
               </ul>
             </div>
           </div>
@@ -57,7 +71,7 @@ const Footer: React.FC = () => {
         
         <div className="mt-6 pt-4 border-t border-blue-700 text-center text-sm text-gray-300">
           <p>
-            &copy; {currentYear} March Madness 2025. All rights reserved.
+            &copy; {currentYear} Kyle Askine
           </p>
           <p className="mt-1">
             Tournament games: March 20-April 7, 2025 • Championship: April 7 at Alamodome
