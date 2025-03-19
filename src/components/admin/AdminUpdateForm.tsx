@@ -2,17 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { adminUpdateServices, Update } from '../../services/api';
 
-// Try to import react-quill, but this will require installing it:
-// npm install react-quill
-
-let ReactQuill: any;
-try {
-  ReactQuill = require('react-quill');
-  require('react-quill/dist/quill.snow.css');
-} catch (e) {
-  // If react-quill isn't installed, we'll use a textarea instead
-}
-
 const AdminUpdateForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -145,33 +134,14 @@ const AdminUpdateForm: React.FC = () => {
           <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
             Content *
           </label>
-          
-          {ReactQuill ? (
-            <ReactQuill
-              value={formData.content}
-              onChange={handleEditorChange}
-              theme="snow"
-              modules={{
-                toolbar: [
-                  [{ 'header': [1, 2, 3, false] }],
-                  ['bold', 'italic', 'underline', 'strike'],
-                  [{'list': 'ordered'}, {'list': 'bullet'}],
-                  ['link'],
-                  ['clean']
-                ]
-              }}
-              className="min-h-[200px] mb-12"
-            />
-          ) : (
-            <textarea
-              id="content"
-              name="content"
-              value={formData.content}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md min-h-[200px]"
-              required
-            />
-          )}
+          <textarea
+            id="content"
+            name="content"
+            value={formData.content}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md min-h-[200px]"
+            required
+          />
           <p className="text-xs text-gray-500 mt-1">
             HTML formatting is supported.
           </p>

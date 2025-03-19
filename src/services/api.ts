@@ -76,7 +76,7 @@ export const authServices = {
 
   // Verify magic link token
   verifyToken: async (token: string, email: string): Promise<AuthResponse> => {
-    const response: AxiosResponse<AuthResponse> = await api.get(`/auth/verify?token=${token}&email=${email}`);
+    const response: AxiosResponse<AuthResponse> = await api.get(`/auth/verify?token=${token}&email=${encodeURIComponent(email)}`);
     return response.data;
   },
 
@@ -86,7 +86,18 @@ export const authServices = {
     return response.data;
   },
   
-  // Check if user exists and create if not
+  // Check if current user is an admin
+  isAdmin: async (): Promise<{isAdmin: boolean}> => {
+    try {
+      const response: AxiosResponse<{isAdmin: boolean}> = await api.get('/auth/is-admin');
+      return response.data;
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      return { isAdmin: false };
+    }
+  },
+  
+  // Create or get user for bracket submission
   createOrGetUser: async (email: string): Promise<string | null> => {
     try {
       const response: AxiosResponse<{ token: string, isNewUser: boolean }> = 
@@ -97,6 +108,18 @@ export const authServices = {
       console.error('Error creating/checking user:', error);
       return null;
     }
+  },
+  
+  // Check if user is logged in
+  isLoggedIn: (): boolean => {
+    return !!localStorage.getItem('token');
+  },
+  
+  // Log out user
+  logout: (): void => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('isAdmin');
+    // Don't remove userToken_email as it may be needed for anonymous bracket access
   }
 };
 
