@@ -3,6 +3,9 @@ import { useNavigate, Link, Routes, Route } from 'react-router-dom';
 import { adminAuthServices } from '../../services/api';
 import AdminUpdates from './AdminUpdates';
 import AdminUpdateForm from './AdminUpdateForm';
+import AdminUsers from './AdminUsers';
+import AdminBrackets from './AdminBrackets';
+import AdminTournament from './AdminTournament';
 
 const AdminDashboard: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -76,6 +79,30 @@ const AdminDashboard: React.FC = () => {
               </li>
               <li>
                 <Link 
+                  to="/admin/users" 
+                  className="block py-2 px-4 rounded hover:bg-gray-700"
+                >
+                  Manage Users
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/admin/brackets" 
+                  className="block py-2 px-4 rounded hover:bg-gray-700"
+                >
+                  Manage Brackets
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/admin/tournament" 
+                  className="block py-2 px-4 rounded hover:bg-gray-700"
+                >
+                  Tournament Results
+                </Link>
+              </li>
+              <li>
+                <Link 
                   to="/" 
                   className="block py-2 px-4 rounded hover:bg-gray-700"
                 >
@@ -93,6 +120,10 @@ const AdminDashboard: React.FC = () => {
             <Route path="/updates" element={<AdminUpdates />} />
             <Route path="/updates/new" element={<AdminUpdateForm />} />
             <Route path="/updates/edit/:id" element={<AdminUpdateForm />} />
+            <Route path="/users" element={<AdminUsers />} />
+            <Route path="/users/:userId/brackets" element={<AdminBrackets />} />
+            <Route path="/brackets" element={<AdminBrackets />} />
+            <Route path="/tournament" element={<AdminTournament />} />
           </Routes>
         </div>
       </div>
@@ -121,17 +152,34 @@ const AdminOverview: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
           <h2 className="text-lg font-bold mb-2">Users</h2>
           <p className="text-gray-600 mb-4">View all registered users and their brackets.</p>
-          <span className="text-gray-400">
-            Coming Soon
-          </span>
+          <Link 
+            to="/admin/users" 
+            className="text-green-600 hover:text-green-800 font-medium"
+          >
+            Manage Users →
+          </Link>
         </div>
         
         <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
           <h2 className="text-lg font-bold mb-2">Brackets</h2>
           <p className="text-gray-600 mb-4">View and manage all submitted brackets.</p>
-          <span className="text-gray-400">
-            Coming Soon
-          </span>
+          <Link 
+            to="/admin/brackets" 
+            className="text-purple-600 hover:text-purple-800 font-medium"
+          >
+            Manage Brackets →
+          </Link>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
+          <h2 className="text-lg font-bold mb-2">Tournament</h2>
+          <p className="text-gray-600 mb-4">Manage tournament results and calculate scores.</p>
+          <Link 
+            to="/admin/tournament" 
+            className="text-red-600 hover:text-red-800 font-medium"
+          >
+            Manage Tournament →
+          </Link>
         </div>
       </div>
       
