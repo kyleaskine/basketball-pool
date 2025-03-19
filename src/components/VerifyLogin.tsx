@@ -41,9 +41,9 @@ const VerifyLogin: React.FC = () => {
         
         setSuccess(true);
         
-        // Redirect after a short delay
+        // Redirect after a short delay to home page instead of directly to brackets
         setTimeout(() => {
-          navigate('/user/brackets');
+          navigate('/');
         }, 1500);
       } catch (error) {
         console.error('Error verifying token:', error);
@@ -81,7 +81,7 @@ const VerifyLogin: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
             <h1 className="text-2xl font-bold text-blue-800 mb-2">Login Successful!</h1>
-            <p className="text-gray-600">You are now signed in. Redirecting you to your brackets...</p>
+            <p className="text-gray-600">You are now signed in. Redirecting you to the home page...</p>
           </div>
         </div>
       </div>

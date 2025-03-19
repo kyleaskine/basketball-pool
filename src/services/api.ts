@@ -12,7 +12,9 @@ export interface BracketResponse {
   isLocked: boolean;
   picks: BracketData;
   score: number;
-  userToken?: string; // Added for user identification
+  entryNumber?: number; // Added for multiple entries tracking
+  totalEntries?: number; // Added to show total entries for a participant
+  userToken?: string; // For user identification
 }
 
 export interface AuthResponse {
@@ -98,14 +100,30 @@ export const authServices = {
   },
   
   // Create or get user for bracket submission
-  createOrGetUser: async (email: string): Promise<string | null> => {
+  createOrGetUser: async (email: string): Promise<{token: string | null, jwtToken?: string, isNewUser?: boolean}> => {
     try {
-      const response: AxiosResponse<{ token: string, isNewUser: boolean }> = 
+      const response: AxiosResponse<{ token: string, jwtToken: string, isNewUser: boolean }> = 
         await api.post('/auth/check-create', { email });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error creating/checking user:', error);
+      return { token: null };
+    }
+  },
+  
+  // Refresh JWT token
+  refreshToken: async (): Promise<string | null> => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      
+      const response: AxiosResponse<{ token: string }> = 
+        await api.post('/auth/refresh', {});
       
       return response.data.token;
     } catch (error) {
-      console.error('Error creating/checking user:', error);
+      console.error('Error refreshing token:', error);
       return null;
     }
   },

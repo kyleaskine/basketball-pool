@@ -22,10 +22,10 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "npx @tailwindcss/cli -i ./src/index.css -o ./src/output.css && react-scripts build",
+    "build": "npx @tailwindcss/cli -i ./src/index.css -o ./public/index.css && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "tailwind": "npx @tailwindcss/cli -i ./src/index.css -o ./src/output.css --watch"
+    "tailwind": "npx @tailwindcss/cli -i ./src/index.css -o ./public/index.css --watch"
   },
   "Config": {
     "extends": [

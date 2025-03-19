@@ -17,6 +17,8 @@ const BracketView: React.FC = () => {
     score: number;
     createdAt: string;
     editToken: string;
+    entryNumber?: number;
+    totalEntries?: number;
   } | null>(null);
   
   useEffect(() => {
@@ -54,7 +56,9 @@ const BracketView: React.FC = () => {
           isLocked: response.isLocked,
           score: response.score,
           createdAt: response.createdAt,
-          editToken: response.editToken
+          editToken: response.editToken,
+          entryNumber: response.entryNumber,
+          totalEntries: response.totalEntries
         });
         setIsLoading(false);
       } catch (error) {
@@ -127,12 +131,22 @@ const BracketView: React.FC = () => {
   // Get the edit token from the URL if present
   const urlParams = new URLSearchParams(window.location.search);
   const editToken = urlParams.get('token');
+
+  // Check if this is a multiple entry
+  const isMultipleEntry = bracketInfo.totalEntries && bracketInfo.totalEntries > 1;
+  const entryNumberDisplay = isMultipleEntry && bracketInfo.entryNumber ? 
+    ` (Entry #${bracketInfo.entryNumber})` : '';
   
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-blue-800 mb-2">
           {bracketInfo.participantName}'s Bracket
+          {isMultipleEntry && (
+            <span className="text-lg font-normal text-gray-600 italic ml-1">
+              {entryNumberDisplay}
+            </span>
+          )}
         </h1>
         <div className="flex flex-wrap gap-4">
           <p className="text-gray-600">

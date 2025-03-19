@@ -20,6 +20,8 @@ const BracketEdit: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [bracketData, setBracketData] = useState<BracketData | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [entryNumber, setEntryNumber] = useState<number | null>(null);
+  const [totalEntries, setTotalEntries] = useState<number | null>(null);
   
   useEffect(() => {
     const loadBracket = async () => {
@@ -46,6 +48,15 @@ const BracketEdit: React.FC = () => {
           email: response.userEmail,
           contact: response.contact || ''
         };
+        
+        // Set entry number information if available
+        if (response.entryNumber) {
+          setEntryNumber(response.entryNumber);
+        }
+        
+        if (response.totalEntries) {
+          setTotalEntries(response.totalEntries);
+        }
         
         setUserInfo(extractedUserInfo);
         setBracketData(response.picks);
@@ -87,7 +98,10 @@ const BracketEdit: React.FC = () => {
         state: {
           bracketId: response._id,
           editToken: response.editToken,
-          participantName: response.participantName
+          participantName: response.participantName,
+          entryNumber: response.entryNumber,
+          totalEntries: response.totalEntries,
+          userEmail: formData.userInfo.email
         }
       });
     } catch (error) {
@@ -143,10 +157,15 @@ const BracketEdit: React.FC = () => {
     );
   }
   
+  // Check if this is a multiple entry
+  const isMultipleEntry = totalEntries && totalEntries > 1;
+  const entryNumberDisplay = isMultipleEntry && entryNumber ? 
+    ` (Entry #${entryNumber})` : '';
+  
   return (
     <div className="container mx-auto">
       <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded mb-6">
-        <p className="font-bold">Editing Bracket</p>
+        <p className="font-bold">Editing Bracket{entryNumberDisplay}</p>
         <p>You can make changes to your bracket until the tournament begins on March 20, 2025.</p>
       </div>
       

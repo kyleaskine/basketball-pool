@@ -11,25 +11,32 @@ import Login from "./components/Login";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminUpdates from "./components/admin/AdminUpdates";
 import AdminUpdateForm from "./components/admin/AdminUpdateForm";
-import { adminAuthServices } from "./services/api";
+import { adminAuthServices, authServices } from "./services/api";
 import VerifyLogin from './components/VerifyLogin';
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-  // Check login status on component mount
+  // Check login status on component mount and refresh token if needed
   useEffect(() => {
     const checkLoginStatus = async () => {
       const token = localStorage.getItem("token");
       const loggedIn = Boolean(token);
       setIsLoggedIn(loggedIn);
 
-      // Check if user is admin
+      // If logged in, check if token refresh is needed
       if (loggedIn) {
+        // Check if user is admin
         try {
           const adminStatus = await adminAuthServices.isAdmin();
           setIsAdmin(adminStatus);
+          
+          // Refresh token to keep the session active
+          const newToken = await authServices.refreshToken();
+          if (newToken) {
+            localStorage.setItem("token", newToken);
+          }
         } catch (error) {
           setIsAdmin(false);
         }
@@ -41,10 +48,22 @@ const App: React.FC = () => {
 
     // Listen for storage events (for when token is added/removed in another tab)
     window.addEventListener("storage", checkLoginStatus);
+    
+    // Set up a recurring check to refresh the token every 6 hours
+    const tokenRefreshInterval = setInterval(async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const newToken = await authServices.refreshToken();
+        if (newToken) {
+          localStorage.setItem("token", newToken);
+        }
+      }
+    }, 6 * 60 * 60 * 1000); // 6 hours in milliseconds
 
     // Clean up
     return () => {
       window.removeEventListener("storage", checkLoginStatus);
+      clearInterval(tokenRefreshInterval);
     };
   }, []);
 

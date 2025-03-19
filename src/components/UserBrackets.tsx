@@ -71,6 +71,15 @@ const UserBrackets: React.FC = () => {
     );
   }
   
+  // Group brackets by participant name
+  const participantGroups: { [key: string]: BracketResponse[] } = {};
+  brackets.forEach(bracket => {
+    if (!participantGroups[bracket.participantName]) {
+      participantGroups[bracket.participantName] = [];
+    }
+    participantGroups[bracket.participantName].push(bracket);
+  });
+  
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="flex justify-between items-center mb-6">
@@ -95,53 +104,73 @@ const UserBrackets: React.FC = () => {
         </div>
       ) : (
         <div className="grid gap-6">
-          {brackets.map(bracket => (
-            <div 
-              key={bracket._id} 
-              className="bg-white p-6 rounded-lg shadow-md border border-gray-200"
-            >
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                <h2 className="text-xl font-semibold text-blue-800">{bracket.participantName}</h2>
-                <div className="mt-2 md:mt-0 text-sm text-gray-500">
-                  Created: {formatDate(bracket.createdAt)}
-                </div>
-              </div>
-              
-              <div className="mb-4">
-                <p className="text-gray-700">
-                  <span className="font-medium">Status:</span> {bracket.isLocked ? 'Locked' : 'Editable'}
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-medium">Score:</span> {bracket.score}
-                </p>
-              </div>
-              
-              <div className="flex flex-wrap gap-3">
-                <Link 
-                  to={`/bracket/view/${bracket._id}`}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  View Bracket
-                </Link>
-                
-                {!bracket.isLocked && (
-                  <Link 
-                    to={`/bracket/edit/${bracket._id}?token=${bracket.editToken}`}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                  >
-                    Edit Bracket
-                  </Link>
+          {Object.entries(participantGroups).map(([name, groupBrackets]) => (
+            <div key={name} className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 p-4 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-blue-800">{name}</h2>
+                {groupBrackets.length > 1 && (
+                  <p className="text-sm text-gray-600">{groupBrackets.length} entries</p>
                 )}
-                
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/bracket/edit/${bracket._id}?token=${bracket.editToken}`);
-                    alert("Edit link copied to clipboard!");
-                  }}
-                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                >
-                  Copy Edit Link
-                </button>
+              </div>
+              
+              <div className="divide-y divide-gray-200">
+                {groupBrackets.map(bracket => (
+                  <div 
+                    key={bracket._id} 
+                    className="bg-white p-6"
+                  >
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                      <div>
+                        <h3 className="font-semibold">
+                          {bracket.entryNumber && groupBrackets.length > 1 ? `Entry #${bracket.entryNumber}` : 'Bracket'}
+                        </h3>
+                        <div className="mt-1 text-sm text-gray-500">
+                          Created: {formatDate(bracket.createdAt)}
+                        </div>
+                      </div>
+                      <div className="mt-2 md:mt-0">
+                        <span className={`inline-block px-3 py-1 rounded-full text-sm ${
+                          bracket.isLocked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                        }`}>
+                          {bracket.isLocked ? 'Locked' : 'Editable'}
+                        </span>
+                        {bracket.isLocked && (
+                          <span className="ml-2 font-medium">
+                            Score: {bracket.score}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3">
+                      <Link 
+                        to={`/bracket/view/${bracket._id}`}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        View Bracket
+                      </Link>
+                      
+                      {!bracket.isLocked && (
+                        <Link 
+                          to={`/bracket/edit/${bracket._id}?token=${bracket.editToken}`}
+                          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                        >
+                          Edit Bracket
+                        </Link>
+                      )}
+                      
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/bracket/edit/${bracket._id}?token=${bracket.editToken}`);
+                          alert("Edit link copied to clipboard!");
+                        }}
+                        className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                      >
+                        Copy Edit Link
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}

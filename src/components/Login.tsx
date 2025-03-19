@@ -40,8 +40,8 @@ const Login: React.FC = () => {
             console.error('Error checking admin status:', adminError);
           }
           
-          // Redirect to user brackets or homepage
-          navigate('/user/brackets');
+          // Redirect to home page instead of directly to brackets
+          navigate('/');
         } catch (error) {
           console.error('Error verifying token:', error);
           setError('Invalid or expired login link. Please try again with a new magic link.');
@@ -70,7 +70,7 @@ const Login: React.FC = () => {
       // For development, we can use the token directly
       if (process.env.NODE_ENV === 'development' && response.token) {
         localStorage.setItem('token', response.token);
-        navigate('/user/brackets');
+        navigate('/');
         return;
       }
       
@@ -125,10 +125,16 @@ const Login: React.FC = () => {
           <div className="text-center">
             <button 
               onClick={() => setIsMagicLinkSent(false)}
-              className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition-colors"
+              className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition-colors mr-3"
             >
               Use a different email
             </button>
+            <Link 
+              to="/"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Return to Home
+            </Link>
           </div>
         </div>
       </div>

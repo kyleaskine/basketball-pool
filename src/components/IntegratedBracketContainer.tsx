@@ -35,7 +35,13 @@ const IntegratedBracketContainer: React.FC = () => {
       const { userInfo, bracketData } = formData;
       
       // First, check if this user exists and create if not
-      const userToken = await authServices.createOrGetUser(userInfo.email);
+      const userResponse = await authServices.createOrGetUser(userInfo.email);
+      const userToken = userResponse.token;
+      
+      // If a JWT token was returned, store it for automatic login
+      if (userResponse.jwtToken) {
+        localStorage.setItem('token', userResponse.jwtToken);
+      }
       
       // Prepare data for API
       const bracketSubmission = {
@@ -51,11 +57,6 @@ const IntegratedBracketContainer: React.FC = () => {
       // Store edit token in local storage for easy access
       localStorage.setItem('bracketEditToken', response.editToken);
       
-      // Store user token if we have it
-      if (userToken) {
-        localStorage.setItem(`userToken_${userInfo.email}`, userToken);
-      }
-      
       // Store bracket details for later use
       const bracketDetails = {
         bracketId: response._id,
@@ -67,32 +68,16 @@ const IntegratedBracketContainer: React.FC = () => {
       
       setSubmittedBracketDetails(bracketDetails);
       
-      // Check if user is logged in
-      const isLoggedIn = authServices.isLoggedIn();
+      // Store email address
+      setMagicLinkEmail(userInfo.email);
       
-      // Only attempt to send magic link if not logged in
-      if (!isLoggedIn) {
-        try {
-          // Request a magic link for the user
-          const magicLinkResponse = await authServices.requestMagicLink(userInfo.email);
-          
-          if (magicLinkResponse.success) {
-            // Set magic link status and email
-            setMagicLinkEmail(userInfo.email);
-            setIsMagicLinkSent(true);
-            setIsSubmitting(false);
-            // Important: return early to prevent navigation to success page
-            return;
-          }
-        } catch (authError) {
-          console.error('Error sending magic link:', authError);
-          // Continue to success page if magic link fails
+      // Navigate directly to success page
+      navigate('/success', { 
+        state: {
+          ...bracketDetails, 
+          emailSent: true
         }
-      }
-      
-      // If magic link wasn't sent or we're already logged in, navigate directly to success page
-      navigate('/success', { state: bracketDetails });
-      
+      });
     } catch (error) {
       console.error('Error submitting bracket:', error);
       let errorMessage = 'An error occurred while submitting your bracket. Please try again.';
@@ -109,7 +94,12 @@ const IntegratedBracketContainer: React.FC = () => {
   // Handle continuing to success page after acknowledging magic link
   const handleContinue = () => {
     if (submittedBracketDetails) {
-      navigate('/success', { state: submittedBracketDetails });
+      navigate('/success', { 
+        state: {
+          ...submittedBracketDetails,
+          emailSent: true
+        }
+      });
     } else {
       // Fallback to home if no details available
       navigate('/');

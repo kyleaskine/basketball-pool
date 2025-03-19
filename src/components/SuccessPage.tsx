@@ -3,7 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 
 const SuccessPage = () => {
   const location = useLocation();
-  const { bracketId, editToken, participantName, userEmail, userToken } = location.state || {};
+  const { bracketId, editToken, participantName, userEmail, userToken, emailSent, entryNumber, totalEntries } = location.state || {};
   
   // If no data was passed, show a generic success message
   if (!bracketId || !editToken) {
@@ -28,20 +28,38 @@ const SuccessPage = () => {
   const userBracketsUrl = userEmail && userToken ? 
     `${window.location.origin}/user/brackets/${userEmail}?token=${userToken}` : null;
 
+  // Determine entry number display
+  const showEntryNumber = entryNumber && totalEntries && totalEntries > 1;
+  const entryText = showEntryNumber ? ` (Entry #${entryNumber} of ${totalEntries})` : '';
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="bg-white p-8 rounded-lg shadow-md">
         <div className="bg-green-100 p-4 rounded-lg mb-6">
           <h1 className="text-2xl font-bold text-green-600 mb-2">Bracket Submitted Successfully!</h1>
           <p className="text-green-700">
-            Thank you, {participantName}! Your bracket has been received and recorded.
+            Thank you, {participantName}!{showEntryNumber && <span className="italic ml-2">Entry #{entryNumber}</span>} Your bracket has been received and recorded.
           </p>
         </div>
+
+        {emailSent && (
+          <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded mb-6">
+            <p className="font-bold">Confirmation Email Sent</p>
+            <p>
+              We've sent a confirmation email to <strong>{userEmail}</strong> with all your bracket links.
+              Please save this email for future reference.
+            </p>
+            <p className="mt-2 text-sm">
+              If you don't see the email in your inbox, please check your spam folder.
+            </p>
+          </div>
+        )}
 
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">Important: Save Your Links</h2>
           <p className="mb-4">
             You can use the links below to view or edit your bracket before the tournament starts.
+            {!emailSent && " We recommend bookmarking these links or saving them somewhere safe."}
           </p>
           
           {/* Edit Link */}
@@ -101,7 +119,7 @@ const SuccessPage = () => {
               </button>
               
               <p className="mt-2 text-sm text-gray-600">
-                Save this link to access all your brackets from this email address.
+                Bookmark this link to access all your brackets from this email address.
               </p>
             </div>
           )}

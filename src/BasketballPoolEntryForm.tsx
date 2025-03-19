@@ -5,7 +5,10 @@ import PrintStyleCompactBracket from "./PrintStyleCompactBracket";
 
 // Define props type for the component with onSubmit handler
 interface ResponsiveBasketballPoolEntryFormProps {
-  onSubmit?: (formData: { userInfo: UserInfo; bracketData: BracketData }) => void;
+  onSubmit?: (formData: {
+    userInfo: UserInfo;
+    bracketData: BracketData;
+  }) => void;
   isSubmitting?: boolean;
   initialUserInfo?: UserInfo;
   initialBracketData?: BracketData;
@@ -22,7 +25,9 @@ interface UserInfoFormProps {
 // Extracted UserInfoForm component to manage its own state
 const UserInfoForm = React.memo(
   (props: UserInfoFormProps) => {
-    const { userInfo, validationErrors, onUserInfoChange, bracketError } = props;
+    const { userInfo, validationErrors, onUserInfoChange, bracketError } =
+      props;
+    const [hasSpecialChars, setHasSpecialChars] = useState<boolean>(false);
 
     // Create refs for each input
     const firstNameRef = React.useRef<HTMLInputElement>(null);
@@ -30,15 +35,44 @@ const UserInfoForm = React.memo(
     const emailRef = React.useRef<HTMLInputElement>(null);
     const contactRef = React.useRef<HTMLInputElement>(null);
 
+    // Function to check for numbers or # symbols in a string
+    const containsNumbersOrHash = (str: string): boolean => {
+      const numbersOrHashRegex = /[0-9#]/;
+      return numbersOrHashRegex.test(str);
+    };
+
     // Handle input changes internally
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const handleInputChange = (
+      e: React.ChangeEvent<HTMLInputElement>
+    ): void => {
       const { name, value } = e.target;
-      
+
       // Update the parent component with new values
       onUserInfoChange({
         ...userInfo,
         [name]: value,
       });
+
+      // Check for numbers or # in names
+      if (
+        (name === "firstName" || name === "lastName") &&
+        containsNumbersOrHash(value)
+      ) {
+        setHasSpecialChars(true);
+      } else if (name === "firstName" || name === "lastName") {
+        // Only set to false if both first and last name don't have special chars
+        const firstNameHasSpecial =
+          name === "firstName"
+            ? containsNumbersOrHash(value)
+            : containsNumbersOrHash(userInfo.firstName);
+
+        const lastNameHasSpecial =
+          name === "lastName"
+            ? containsNumbersOrHash(value)
+            : containsNumbersOrHash(userInfo.lastName);
+
+        setHasSpecialChars(firstNameHasSpecial || lastNameHasSpecial);
+      }
     };
 
     return (
@@ -109,6 +143,17 @@ const UserInfoForm = React.memo(
             </div>
           </div>
 
+          {/* Display warning for special characters in names */}
+          {hasSpecialChars && (
+            <div className="p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 rounded">
+              <p>
+                We'll automatically number your entries if you submit multiple
+                brackets. No need to add numbers or special characters to your
+                name.
+              </p>
+            </div>
+          )}
+
           {/* Email field */}
           <div>
             <label
@@ -151,9 +196,7 @@ const UserInfoForm = React.memo(
               value={userInfo.contact}
               onChange={handleInputChange}
               className={`w-full px-3 py-2 border rounded-md ${
-                validationErrors.contact
-                  ? "border-red-500"
-                  : "border-gray-300"
+                validationErrors.contact ? "border-red-500" : "border-gray-300"
               }`}
             />
             {validationErrors.contact && (
@@ -169,19 +212,23 @@ const UserInfoForm = React.memo(
   (prevProps, nextProps) => {
     // Custom comparison to prevent unnecessary re-renders
     return (
-      JSON.stringify(prevProps.userInfo) === JSON.stringify(nextProps.userInfo) &&
-      JSON.stringify(prevProps.validationErrors) === JSON.stringify(nextProps.validationErrors) &&
+      JSON.stringify(prevProps.userInfo) ===
+        JSON.stringify(nextProps.userInfo) &&
+      JSON.stringify(prevProps.validationErrors) ===
+        JSON.stringify(nextProps.validationErrors) &&
       prevProps.bracketError === nextProps.bracketError
     );
   }
 );
 
 // Create a wrapper component for the entire tournament app
-const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryFormProps> = ({ 
-  onSubmit, 
+const ResponsiveBasketballPoolEntryForm: React.FC<
+  ResponsiveBasketballPoolEntryFormProps
+> = ({
+  onSubmit,
   isSubmitting = false,
   initialUserInfo,
-  initialBracketData 
+  initialBracketData,
 }) => {
   // Use a stable React.memo component for the app content
   const AppContent = React.memo(() => {
@@ -401,17 +448,21 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
     }, [regions]);
 
     // State management
-    const [userInfo, setUserInfo] = useState<UserInfo>(initialUserInfo || {
-      firstName: "",
-      lastName: "",
-      email: "",
-      contact: "",
-    });
-    
+    const [userInfo, setUserInfo] = useState<UserInfo>(
+      initialUserInfo || {
+        firstName: "",
+        lastName: "",
+        email: "",
+        contact: "",
+      }
+    );
+
     const [bracketData, setBracketData] = useState<BracketData>(
       initialBracketData || initializeBracket()
     );
-    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+    const [validationErrors, setValidationErrors] = useState<
+      Record<string, string>
+    >({});
     const [submitAttempted, setSubmitAttempted] = useState<boolean>(false);
     const [isLargeScreen, setIsLargeScreen] = useState<boolean>(false);
     const [preferCompact, setPreferCompact] = useState<boolean | null>(null);
@@ -421,18 +472,18 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
     // Function to find incomplete matchups
     const findIncompleteMatchups = useCallback(() => {
       const incomplete: number[] = [];
-      
+
       // Check each round to see if all matchups have winners
       for (let round = 1; round <= 6; round++) {
         const matchupsInRound = bracketData[round];
-        matchupsInRound.forEach(matchup => {
+        matchupsInRound.forEach((matchup) => {
           // Only check for missing winners if both teams are available
           if (matchup.teamA && matchup.teamB && !matchup.winner) {
             incomplete.push(matchup.id);
           }
         });
       }
-      
+
       setIncompleteMatchups(incomplete);
       return incomplete;
     }, [bracketData]);
@@ -445,7 +496,9 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
     // Check screen size on component mount and when window is resized
     useEffect(() => {
       const checkScreenSize = () => {
-        setIsLargeScreen(window.innerWidth >= 1400 && window.innerHeight >= 900);
+        setIsLargeScreen(
+          window.innerWidth >= 1400 && window.innerHeight >= 900
+        );
       };
 
       // Initial check
@@ -463,11 +516,11 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
     // Handler for user info change from the form component
     const handleUserInfoChange = useCallback((updatedInfo: UserInfo): void => {
       setUserInfo(updatedInfo);
-      
+
       // Clear any validation errors for fields that were updated
-      setValidationErrors(prev => {
+      setValidationErrors((prev) => {
         const newErrors = { ...prev };
-        Object.keys(updatedInfo).forEach(field => {
+        Object.keys(updatedInfo).forEach((field) => {
           if (newErrors[field] && updatedInfo[field as keyof UserInfo]) {
             delete newErrors[field];
           }
@@ -624,7 +677,9 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
         const { matchup, round } = matchupInfo;
 
         // Create a deep copy of the bracket data
-        const newBracketData = JSON.parse(JSON.stringify(bracketData)) as BracketData;
+        const newBracketData = JSON.parse(
+          JSON.stringify(bracketData)
+        ) as BracketData;
 
         // Find the index of the matchup in the current round
         const matchupIndex = newBracketData[round].findIndex(
@@ -685,7 +740,8 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
       const errors: Record<string, string> = {};
 
       // Validate user info
-      if (!userInfo.firstName.trim()) errors.firstName = "First name is required";
+      if (!userInfo.firstName.trim())
+        errors.firstName = "First name is required";
       if (!userInfo.lastName.trim()) errors.lastName = "Last name is required";
       if (!userInfo.email.trim()) errors.email = "Email is required";
       if (!userInfo.email.includes("@"))
@@ -741,11 +797,14 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
 
       // First validate the form
       const isValid = validateForm();
-      const userInfoValid = !validationErrors.firstName && !validationErrors.lastName && !validationErrors.email;
+      const userInfoValid =
+        !validationErrors.firstName &&
+        !validationErrors.lastName &&
+        !validationErrors.email;
 
       // If there are user info validation errors, scroll to the form
       if (!userInfoValid) {
-        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
         return;
       }
 
@@ -796,7 +855,10 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
         }));
 
         // Scroll to the bracket section
-        bracketRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        bracketRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
         alert(`Please complete your picks for: ${incompleteRounds.join(", ")}`);
         return;
       }
@@ -806,7 +868,7 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
           // Call the onSubmit prop with form data if provided
           onSubmit({
             userInfo,
-            bracketData
+            bracketData,
           });
         } else {
           // Default behavior if no onSubmit provided
@@ -814,10 +876,18 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
         }
       } else {
         // Show validation errors and scroll to top of form
-        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
         alert("Please fix the errors in the form before submitting.");
       }
-    }, [validateForm, bracketData, validationErrors, userInfo, onSubmit, formRef, bracketRef]);
+    }, [
+      validateForm,
+      bracketData,
+      validationErrors,
+      userInfo,
+      onSubmit,
+      formRef,
+      bracketRef,
+    ]);
 
     const handleRandomPicks = useCallback((): void => {
       // Generate random picks by simulating selections through the bracket
@@ -985,19 +1055,27 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
           className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
           disabled={isSubmitting}
         >
-          {useCompactView() ? "Switch to Regular View" : "Switch to Compact View"}
+          {useCompactView()
+            ? "Switch to Regular View"
+            : "Switch to Compact View"}
         </button>
       </div>
     ));
 
     // The bracket component should only re-render when its data changes
     const BracketComponent = React.memo(
-      ({ useCompactView, bracketData, handleTeamSelect, incompleteMatchups, submitAttempted }: { 
-        useCompactView: () => boolean, 
-        bracketData: BracketData, 
-        handleTeamSelect: (matchupId: number, team: Team) => void,
-        incompleteMatchups: number[],
-        submitAttempted: boolean
+      ({
+        useCompactView,
+        bracketData,
+        handleTeamSelect,
+        incompleteMatchups,
+        submitAttempted,
+      }: {
+        useCompactView: () => boolean;
+        bracketData: BracketData;
+        handleTeamSelect: (matchupId: number, team: Team) => void;
+        incompleteMatchups: number[];
+        submitAttempted: boolean;
       }) => {
         return useCompactView() ? (
           <PrintStyleCompactBracket
@@ -1017,9 +1095,13 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
       },
       (prevProps, nextProps) => {
         // Only re-render if bracketData, incompleteMatchups, or submitAttempted have changed
-        return JSON.stringify(prevProps.bracketData) === JSON.stringify(nextProps.bracketData) &&
-               JSON.stringify(prevProps.incompleteMatchups) === JSON.stringify(nextProps.incompleteMatchups) &&
-               prevProps.submitAttempted === nextProps.submitAttempted;
+        return (
+          JSON.stringify(prevProps.bracketData) ===
+            JSON.stringify(nextProps.bracketData) &&
+          JSON.stringify(prevProps.incompleteMatchups) ===
+            JSON.stringify(nextProps.incompleteMatchups) &&
+          prevProps.submitAttempted === nextProps.submitAttempted
+        );
       }
     );
 
@@ -1052,18 +1134,25 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
 
         {/* How to Complete Your Bracket Help Section */}
         <div className="bg-blue-50 border border-blue-200 rounded p-4 mb-6">
-          <h3 className="font-bold text-blue-800 mb-2">How to Complete Your Bracket</h3>
+          <h3 className="font-bold text-blue-800 mb-2">
+            How to Complete Your Bracket
+          </h3>
           <ul className="list-disc pl-5 space-y-1">
-            <li>Click on a team name to select it as the winner of that matchup</li>
+            <li>
+              Click on a team name to select it as the winner of that matchup
+            </li>
             <li>Winners automatically advance to the next round</li>
             <li>Complete your bracket by selecting a champion</li>
-            <li>Use the buttons below to generate random picks or select all favorites</li>
+            <li>
+              Use the buttons below to generate random picks or select all
+              favorites
+            </li>
           </ul>
         </div>
 
         {/* Add ref to the bracket section */}
         <div ref={bracketRef}>
-          <BracketComponent 
+          <BracketComponent
             useCompactView={useCompactView}
             bracketData={bracketData}
             handleTeamSelect={handleTeamSelect}
@@ -1084,7 +1173,7 @@ const ResponsiveBasketballPoolEntryForm: React.FC<ResponsiveBasketballPoolEntryF
       </>
     );
   });
-  
+
   // Stable container that doesn't re-render with state changes
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
