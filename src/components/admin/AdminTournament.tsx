@@ -41,9 +41,10 @@ const AdminTournament: React.FC = () => {
   const [isLockingBrackets, setIsLockingBrackets] = useState<boolean>(false);
   const [isUnlockingBrackets, setIsUnlockingBrackets] = useState<boolean>(false);
   const [activeRound, setActiveRound] = useState<number>(1);
-  const [editingGame, setEditingGame] = useState<Game | null>(null);
+  const [activeMatchup, setActiveMatchup] = useState<Game | null>(null);
   const [scoreTeamA, setScoreTeamA] = useState<string>('');
   const [scoreTeamB, setScoreTeamB] = useState<string>('');
+  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   useEffect(() => {
     fetchTournamentResults();
@@ -129,14 +130,76 @@ const AdminTournament: React.FC = () => {
     }
   };
 
+  const handleExportCSV = async () => {
+    setIsExporting(true);
+    try {
+      const response = await api.get('/admin/brackets/export/csv', { responseType: 'blob' });
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `brackets-export-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Error exporting brackets:', err);
+      setError('Failed to export brackets. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportJSON = async () => {
+    setIsExporting(true);
+    try {
+      const response = await api.get('/admin/brackets/export/json', { responseType: 'blob' });
+      
+      // Create a download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `brackets-export-${new Date().toISOString().slice(0, 10)}.json`);
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Error exporting brackets:', err);
+      setError('Failed to export brackets. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Handle matchup click from bracket display
+  const handleMatchupClick = (matchup: Matchup) => {
+    if (!results) return;
+    
+    // Find the corresponding game in the games array
+    const game = results.games.find(g => g.matchupId === matchup.id);
+    if (game && game.teamA && game.teamB) {
+      setActiveMatchup(game);
+      setScoreTeamA(game.score?.teamA?.toString() || '');
+      setScoreTeamB(game.score?.teamB?.toString() || '');
+    }
+  };
+
+  // Method for manually opening the edit form for a game
   const handleEditGame = (game: Game) => {
-    setEditingGame(game);
+    setActiveMatchup(game);
     setScoreTeamA(game.score?.teamA?.toString() || '');
     setScoreTeamB(game.score?.teamB?.toString() || '');
   };
 
   const handleSaveGameResult = async () => {
-    if (!editingGame) return;
+    if (!activeMatchup) return;
     
     setIsSaving(true);
     try {
@@ -153,16 +216,17 @@ const AdminTournament: React.FC = () => {
       
       let winner = null;
       if (scoreA > scoreB) {
-        winner = editingGame.teamA;
+        winner = activeMatchup.teamA;
       } else if (scoreB > scoreA) {
-        winner = editingGame.teamB;
+        winner = activeMatchup.teamB;
       } else {
         setError('Teams cannot have the same score. Please enter a winner.');
         setIsSaving(false);
         return;
       }
       
-      const response = await api.put(`/tournament/games/${editingGame.matchupId}`, {
+      // Add query parameter to auto-calculate scores
+      const response = await api.put(`/tournament/games/${activeMatchup.matchupId}?calculateScores=true`, {
         winner,
         score: {
           teamA: scoreA,
@@ -172,14 +236,19 @@ const AdminTournament: React.FC = () => {
       });
       
       // Update local state with updated tournament data
-      setResults(response.data);
+      setResults(response.data.tournament || response.data);
       
       // Clear editing state
-      setEditingGame(null);
+      setActiveMatchup(null);
       setScoreTeamA('');
       setScoreTeamB('');
       
-      setSuccessMessage('Game result saved successfully');
+      // Show appropriate success message
+      if (response.data.scoresUpdated) {
+        setSuccessMessage(`Game result saved and ${response.data.bracketsUpdated} bracket scores updated`);
+      } else {
+        setSuccessMessage('Game result saved successfully');
+      }
       
       // Auto-clear success message after 5 seconds
       setTimeout(() => {
@@ -200,10 +269,12 @@ const AdminTournament: React.FC = () => {
     
     setIsSaving(true);
     try {
+      if (!results) return;
+
       // Update completed rounds
-      const completedRounds = results?.completedRounds || [];
+      const completedRounds = results.completedRounds || [];
       if (!completedRounds.includes(round)) {
-        const updatedRounds = [...completedRounds, round].sort();
+        const updatedRounds = [...completedRounds, round].sort((a, b) => a - b);
         
         const response = await api.post('/tournament/results', {
           completedRounds: updatedRounds
@@ -253,6 +324,38 @@ const AdminTournament: React.FC = () => {
 
   // Get games for the active round
   const gamesForActiveRound = results?.games?.filter(game => game.round === activeRound) || [];
+
+  // Add an onMatchupClick prop to the PrintStyleCompactBracket component
+  const BracketWithMatchupClick = ({ bracketData }: { bracketData: BracketData }) => {
+    // Create a copy of the bracket data and add isClickable flag to each matchup
+    const clickableBracketData: BracketData = { ...bracketData };
+    
+    Object.keys(clickableBracketData).forEach(roundStr => {
+      const round = parseInt(roundStr);
+      clickableBracketData[round] = bracketData[round].map(matchup => {
+        // Make matchup clickable if it has both teams
+        const isClickable = !!(matchup.teamA && matchup.teamB);
+        return { ...matchup, isClickable };
+      });
+    });
+    
+    return (
+      <PrintStyleCompactBracket
+        bracketData={clickableBracketData}
+        readOnly={false}
+        onTeamSelect={(matchupId, team) => {
+          // Find the matchup
+          for (const round in bracketData) {
+            const matchup = bracketData[parseInt(round)].find(m => m.id === matchupId);
+            if (matchup) {
+              handleMatchupClick(matchup);
+              break;
+            }
+          }
+        }}
+      />
+    );
+  };
 
   return (
     <div>
@@ -317,6 +420,25 @@ const AdminTournament: React.FC = () => {
               View Public Standings
             </Link>
           </div>
+
+          {/* Export Buttons */}
+          <div className="flex flex-wrap gap-4 mb-6">
+            <button
+              onClick={handleExportCSV}
+              disabled={isExporting}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400"
+            >
+              {isExporting ? 'Exporting...' : 'Export Brackets CSV'}
+            </button>
+            
+            <button
+              onClick={handleExportJSON}
+              disabled={isExporting}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+            >
+              {isExporting ? 'Exporting...' : 'Export Brackets JSON'}
+            </button>
+          </div>
           
           {/* Tournament Initialization */}
           {!results && (
@@ -369,6 +491,23 @@ const AdminTournament: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Interactive Tournament Bracket */}
+          {results && results.results && (
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold mb-3">Tournament Bracket</h2>
+              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="p-3 bg-gray-100 border-b border-gray-200">
+                  <div className="text-sm text-gray-600">
+                    Click on any matchup to update the result
+                  </div>
+                </div>
+                <div className="p-4 overflow-x-auto">
+                  <BracketWithMatchupClick bracketData={results.results} />
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Round Selection Tabs */}
           {results && (
@@ -404,7 +543,7 @@ const AdminTournament: React.FC = () => {
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold">Games for {getRoundName(activeRound)}</h2>
                 
-                {!results?.completedRounds?.includes(activeRound) && (
+                {results && !results?.completedRounds?.includes(activeRound) && (
                   <button
                     onClick={() => handleMarkRoundComplete(activeRound)}
                     disabled={isSaving}
@@ -496,7 +635,7 @@ const AdminTournament: React.FC = () => {
           )}
           
           {/* Edit Game Modal */}
-          {editingGame && (
+          {activeMatchup && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
               <div className="bg-white rounded-lg p-6 max-w-md w-full">
                 <h3 className="text-lg font-bold mb-4">
@@ -507,9 +646,9 @@ const AdminTournament: React.FC = () => {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center">
                       <span className="flex items-center justify-center bg-gray-200 text-xs font-bold rounded-full w-6 h-6 mr-2">
-                        {editingGame.teamA.seed}
+                        {activeMatchup.teamA.seed}
                       </span>
-                      <span className="font-medium">{editingGame.teamA.name}</span>
+                      <span className="font-medium">{activeMatchup.teamA.name}</span>
                     </div>
                     <input
                       type="number"
@@ -522,9 +661,9 @@ const AdminTournament: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <span className="flex items-center justify-center bg-gray-200 text-xs font-bold rounded-full w-6 h-6 mr-2">
-                        {editingGame.teamB.seed}
+                        {activeMatchup.teamB.seed}
                       </span>
-                      <span className="font-medium">{editingGame.teamB.name}</span>
+                      <span className="font-medium">{activeMatchup.teamB.name}</span>
                     </div>
                     <input
                       type="number"
@@ -538,7 +677,7 @@ const AdminTournament: React.FC = () => {
                 
                 <div className="flex justify-end gap-3">
                   <button
-                    onClick={() => setEditingGame(null)}
+                    onClick={() => setActiveMatchup(null)}
                     className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
                   >
                     Cancel
@@ -552,18 +691,6 @@ const AdminTournament: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </div>
-          )}
-          
-          {/* Tournament Bracket Preview */}
-          {results?.results && (
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold mb-4">Tournament Bracket Preview</h2>
-              <PrintStyleCompactBracket
-                bracketData={results.results}
-                readOnly={true}
-                highlightCorrectPicks={false}
-              />
             </div>
           )}
         </div>

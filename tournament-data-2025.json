@@ -1,0 +1,1490 @@
+{
+  "year": 2025,
+  "results": {
+    "1": [
+      {
+        "id": 0,
+        "region": "South",
+        "round": 1,
+        "matchupIndex": 0,
+        "teamA": {
+          "seed": 1,
+          "name": "Auburn"
+        },
+        "teamB": {
+          "seed": 16,
+          "name": "ALST/SFC"
+        },
+        "winner": null,
+        "nextMatchupId": 32,
+        "position": 0
+      },
+      {
+        "id": 1,
+        "region": "South",
+        "round": 1,
+        "matchupIndex": 1,
+        "teamA": {
+          "seed": 8,
+          "name": "Louisville"
+        },
+        "teamB": {
+          "seed": 9,
+          "name": "Creighton"
+        },
+        "winner": null,
+        "nextMatchupId": 32,
+        "position": 1
+      },
+      {
+        "id": 2,
+        "region": "South",
+        "round": 1,
+        "matchupIndex": 2,
+        "teamA": {
+          "seed": 5,
+          "name": "Michigan"
+        },
+        "teamB": {
+          "seed": 12,
+          "name": "UC San Diego"
+        },
+        "winner": null,
+        "nextMatchupId": 33,
+        "position": 2
+      },
+      {
+        "id": 3,
+        "region": "South",
+        "round": 1,
+        "matchupIndex": 3,
+        "teamA": {
+          "seed": 4,
+          "name": "Texas A&M"
+        },
+        "teamB": {
+          "seed": 13,
+          "name": "Yale"
+        },
+        "winner": null,
+        "nextMatchupId": 33,
+        "position": 3
+      },
+      {
+        "id": 4,
+        "region": "South",
+        "round": 1,
+        "matchupIndex": 4,
+        "teamA": {
+          "seed": 6,
+          "name": "Mississippi"
+        },
+        "teamB": {
+          "seed": 11,
+          "name": "SDSU/UNC"
+        },
+        "winner": null,
+        "nextMatchupId": 34,
+        "position": 4
+      },
+      {
+        "id": 5,
+        "region": "South",
+        "round": 1,
+        "matchupIndex": 5,
+        "teamA": {
+          "seed": 3,
+          "name": "Iowa St."
+        },
+        "teamB": {
+          "seed": 14,
+          "name": "Lipscomb"
+        },
+        "winner": null,
+        "nextMatchupId": 34,
+        "position": 5
+      },
+      {
+        "id": 6,
+        "region": "South",
+        "round": 1,
+        "matchupIndex": 6,
+        "teamA": {
+          "seed": 7,
+          "name": "Marquette"
+        },
+        "teamB": {
+          "seed": 10,
+          "name": "New Mexico"
+        },
+        "winner": null,
+        "nextMatchupId": 35,
+        "position": 6
+      },
+      {
+        "id": 7,
+        "region": "South",
+        "round": 1,
+        "matchupIndex": 7,
+        "teamA": {
+          "seed": 2,
+          "name": "Michigan St."
+        },
+        "teamB": {
+          "seed": 15,
+          "name": "Bryant"
+        },
+        "winner": null,
+        "nextMatchupId": 35,
+        "position": 7
+      },
+      {
+        "id": 8,
+        "region": "West",
+        "round": 1,
+        "matchupIndex": 0,
+        "teamA": {
+          "seed": 1,
+          "name": "Florida"
+        },
+        "teamB": {
+          "seed": 16,
+          "name": "Norfolk State"
+        },
+        "winner": null,
+        "nextMatchupId": 36,
+        "position": 0
+      },
+      {
+        "id": 9,
+        "region": "West",
+        "round": 1,
+        "matchupIndex": 1,
+        "teamA": {
+          "seed": 8,
+          "name": "Connecticut"
+        },
+        "teamB": {
+          "seed": 9,
+          "name": "Oklahoma"
+        },
+        "winner": null,
+        "nextMatchupId": 36,
+        "position": 1
+      },
+      {
+        "id": 10,
+        "region": "West",
+        "round": 1,
+        "matchupIndex": 2,
+        "teamA": {
+          "seed": 5,
+          "name": "Memphis"
+        },
+        "teamB": {
+          "seed": 12,
+          "name": "Colorado St."
+        },
+        "winner": null,
+        "nextMatchupId": 37,
+        "position": 2
+      },
+      {
+        "id": 11,
+        "region": "West",
+        "round": 1,
+        "matchupIndex": 3,
+        "teamA": {
+          "seed": 4,
+          "name": "Maryland"
+        },
+        "teamB": {
+          "seed": 13,
+          "name": "Grand Canyon"
+        },
+        "winner": null,
+        "nextMatchupId": 37,
+        "position": 3
+      },
+      {
+        "id": 12,
+        "region": "West",
+        "round": 1,
+        "matchupIndex": 4,
+        "teamA": {
+          "seed": 6,
+          "name": "Missouri"
+        },
+        "teamB": {
+          "seed": 11,
+          "name": "Drake"
+        },
+        "winner": null,
+        "nextMatchupId": 38,
+        "position": 4
+      },
+      {
+        "id": 13,
+        "region": "West",
+        "round": 1,
+        "matchupIndex": 5,
+        "teamA": {
+          "seed": 3,
+          "name": "Texas Tech"
+        },
+        "teamB": {
+          "seed": 14,
+          "name": "NC-Wilmington"
+        },
+        "winner": null,
+        "nextMatchupId": 38,
+        "position": 5
+      },
+      {
+        "id": 14,
+        "region": "West",
+        "round": 1,
+        "matchupIndex": 6,
+        "teamA": {
+          "seed": 7,
+          "name": "Kansas"
+        },
+        "teamB": {
+          "seed": 10,
+          "name": "Arkansas"
+        },
+        "winner": null,
+        "nextMatchupId": 39,
+        "position": 6
+      },
+      {
+        "id": 15,
+        "region": "West",
+        "round": 1,
+        "matchupIndex": 7,
+        "teamA": {
+          "seed": 2,
+          "name": "St. John's"
+        },
+        "teamB": {
+          "seed": 15,
+          "name": "Neb. Omaha"
+        },
+        "winner": null,
+        "nextMatchupId": 39,
+        "position": 7
+      },
+      {
+        "id": 16,
+        "region": "East",
+        "round": 1,
+        "matchupIndex": 0,
+        "teamA": {
+          "seed": 1,
+          "name": "Duke"
+        },
+        "teamB": {
+          "seed": 16,
+          "name": "AMER/MSMM"
+        },
+        "winner": null,
+        "nextMatchupId": 40,
+        "position": 0
+      },
+      {
+        "id": 17,
+        "region": "East",
+        "round": 1,
+        "matchupIndex": 1,
+        "teamA": {
+          "seed": 8,
+          "name": "Mississippi St."
+        },
+        "teamB": {
+          "seed": 9,
+          "name": "Baylor"
+        },
+        "winner": null,
+        "nextMatchupId": 40,
+        "position": 1
+      },
+      {
+        "id": 18,
+        "region": "East",
+        "round": 1,
+        "matchupIndex": 2,
+        "teamA": {
+          "seed": 5,
+          "name": "Oregon"
+        },
+        "teamB": {
+          "seed": 12,
+          "name": "Liberty"
+        },
+        "winner": null,
+        "nextMatchupId": 41,
+        "position": 2
+      },
+      {
+        "id": 19,
+        "region": "East",
+        "round": 1,
+        "matchupIndex": 3,
+        "teamA": {
+          "seed": 4,
+          "name": "Arizona"
+        },
+        "teamB": {
+          "seed": 13,
+          "name": "Akron"
+        },
+        "winner": null,
+        "nextMatchupId": 41,
+        "position": 3
+      },
+      {
+        "id": 20,
+        "region": "East",
+        "round": 1,
+        "matchupIndex": 4,
+        "teamA": {
+          "seed": 6,
+          "name": "BYU"
+        },
+        "teamB": {
+          "seed": 11,
+          "name": "VCU"
+        },
+        "winner": null,
+        "nextMatchupId": 42,
+        "position": 4
+      },
+      {
+        "id": 21,
+        "region": "East",
+        "round": 1,
+        "matchupIndex": 5,
+        "teamA": {
+          "seed": 3,
+          "name": "Wisconsin"
+        },
+        "teamB": {
+          "seed": 14,
+          "name": "Montana"
+        },
+        "winner": null,
+        "nextMatchupId": 42,
+        "position": 5
+      },
+      {
+        "id": 22,
+        "region": "East",
+        "round": 1,
+        "matchupIndex": 6,
+        "teamA": {
+          "seed": 7,
+          "name": "St. Mary's"
+        },
+        "teamB": {
+          "seed": 10,
+          "name": "Vanderbilt"
+        },
+        "winner": null,
+        "nextMatchupId": 43,
+        "position": 6
+      },
+      {
+        "id": 23,
+        "region": "East",
+        "round": 1,
+        "matchupIndex": 7,
+        "teamA": {
+          "seed": 2,
+          "name": "Alabama"
+        },
+        "teamB": {
+          "seed": 15,
+          "name": "Robert Morris"
+        },
+        "winner": null,
+        "nextMatchupId": 43,
+        "position": 7
+      },
+      {
+        "id": 24,
+        "region": "Midwest",
+        "round": 1,
+        "matchupIndex": 0,
+        "teamA": {
+          "seed": 1,
+          "name": "Houston"
+        },
+        "teamB": {
+          "seed": 16,
+          "name": "SIU-Edwardsville"
+        },
+        "winner": null,
+        "nextMatchupId": 44,
+        "position": 0
+      },
+      {
+        "id": 25,
+        "region": "Midwest",
+        "round": 1,
+        "matchupIndex": 1,
+        "teamA": {
+          "seed": 8,
+          "name": "Gonzaga"
+        },
+        "teamB": {
+          "seed": 9,
+          "name": "Georgia"
+        },
+        "winner": null,
+        "nextMatchupId": 44,
+        "position": 1
+      },
+      {
+        "id": 26,
+        "region": "Midwest",
+        "round": 1,
+        "matchupIndex": 2,
+        "teamA": {
+          "seed": 5,
+          "name": "Clemson"
+        },
+        "teamB": {
+          "seed": 12,
+          "name": "McNeese St."
+        },
+        "winner": null,
+        "nextMatchupId": 45,
+        "position": 2
+      },
+      {
+        "id": 27,
+        "region": "Midwest",
+        "round": 1,
+        "matchupIndex": 3,
+        "teamA": {
+          "seed": 4,
+          "name": "Purdue"
+        },
+        "teamB": {
+          "seed": 13,
+          "name": "High Point"
+        },
+        "winner": null,
+        "nextMatchupId": 45,
+        "position": 3
+      },
+      {
+        "id": 28,
+        "region": "Midwest",
+        "round": 1,
+        "matchupIndex": 4,
+        "teamA": {
+          "seed": 6,
+          "name": "Illinois"
+        },
+        "teamB": {
+          "seed": 11,
+          "name": "TEX/XAV"
+        },
+        "winner": null,
+        "nextMatchupId": 46,
+        "position": 4
+      },
+      {
+        "id": 29,
+        "region": "Midwest",
+        "round": 1,
+        "matchupIndex": 5,
+        "teamA": {
+          "seed": 3,
+          "name": "Kentucky"
+        },
+        "teamB": {
+          "seed": 14,
+          "name": "Troy"
+        },
+        "winner": null,
+        "nextMatchupId": 46,
+        "position": 5
+      },
+      {
+        "id": 30,
+        "region": "Midwest",
+        "round": 1,
+        "matchupIndex": 6,
+        "teamA": {
+          "seed": 7,
+          "name": "UCLA"
+        },
+        "teamB": {
+          "seed": 10,
+          "name": "Utah St."
+        },
+        "winner": null,
+        "nextMatchupId": 47,
+        "position": 6
+      },
+      {
+        "id": 31,
+        "region": "Midwest",
+        "round": 1,
+        "matchupIndex": 7,
+        "teamA": {
+          "seed": 2,
+          "name": "Tennessee"
+        },
+        "teamB": {
+          "seed": 15,
+          "name": "Wofford"
+        },
+        "winner": null,
+        "nextMatchupId": 47,
+        "position": 7
+      }
+    ],
+    "2": [
+      {
+        "id": 32,
+        "region": "South",
+        "round": 2,
+        "matchupIndex": 0,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 48,
+        "position": 0
+      },
+      {
+        "id": 33,
+        "region": "South",
+        "round": 2,
+        "matchupIndex": 1,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 48,
+        "position": 1
+      },
+      {
+        "id": 34,
+        "region": "South",
+        "round": 2,
+        "matchupIndex": 2,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 49,
+        "position": 2
+      },
+      {
+        "id": 35,
+        "region": "South",
+        "round": 2,
+        "matchupIndex": 3,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 49,
+        "position": 3
+      },
+      {
+        "id": 36,
+        "region": "West",
+        "round": 2,
+        "matchupIndex": 4,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 50,
+        "position": 4
+      },
+      {
+        "id": 37,
+        "region": "West",
+        "round": 2,
+        "matchupIndex": 5,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 50,
+        "position": 5
+      },
+      {
+        "id": 38,
+        "region": "West",
+        "round": 2,
+        "matchupIndex": 6,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 51,
+        "position": 6
+      },
+      {
+        "id": 39,
+        "region": "West",
+        "round": 2,
+        "matchupIndex": 7,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 51,
+        "position": 7
+      },
+      {
+        "id": 40,
+        "region": "East",
+        "round": 2,
+        "matchupIndex": 8,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 52,
+        "position": 8
+      },
+      {
+        "id": 41,
+        "region": "East",
+        "round": 2,
+        "matchupIndex": 9,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 52,
+        "position": 9
+      },
+      {
+        "id": 42,
+        "region": "East",
+        "round": 2,
+        "matchupIndex": 10,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 53,
+        "position": 10
+      },
+      {
+        "id": 43,
+        "region": "East",
+        "round": 2,
+        "matchupIndex": 11,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 53,
+        "position": 11
+      },
+      {
+        "id": 44,
+        "region": "Midwest",
+        "round": 2,
+        "matchupIndex": 12,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 54,
+        "position": 12
+      },
+      {
+        "id": 45,
+        "region": "Midwest",
+        "round": 2,
+        "matchupIndex": 13,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 54,
+        "position": 13
+      },
+      {
+        "id": 46,
+        "region": "Midwest",
+        "round": 2,
+        "matchupIndex": 14,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 55,
+        "position": 14
+      },
+      {
+        "id": 47,
+        "region": "Midwest",
+        "round": 2,
+        "matchupIndex": 15,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 55,
+        "position": 15
+      }
+    ],
+    "3": [
+      {
+        "id": 48,
+        "region": "South",
+        "round": 3,
+        "matchupIndex": 0,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 56,
+        "position": 0
+      },
+      {
+        "id": 49,
+        "region": "South",
+        "round": 3,
+        "matchupIndex": 1,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 56,
+        "position": 1
+      },
+      {
+        "id": 50,
+        "region": "West",
+        "round": 3,
+        "matchupIndex": 2,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 57,
+        "position": 2
+      },
+      {
+        "id": 51,
+        "region": "West",
+        "round": 3,
+        "matchupIndex": 3,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 57,
+        "position": 3
+      },
+      {
+        "id": 52,
+        "region": "East",
+        "round": 3,
+        "matchupIndex": 4,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 58,
+        "position": 4
+      },
+      {
+        "id": 53,
+        "region": "East",
+        "round": 3,
+        "matchupIndex": 5,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 58,
+        "position": 5
+      },
+      {
+        "id": 54,
+        "region": "Midwest",
+        "round": 3,
+        "matchupIndex": 6,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 59,
+        "position": 6
+      },
+      {
+        "id": 55,
+        "region": "Midwest",
+        "round": 3,
+        "matchupIndex": 7,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 59,
+        "position": 7
+      }
+    ],
+    "4": [
+      {
+        "id": 56,
+        "region": "South",
+        "round": 4,
+        "matchupIndex": 0,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 60,
+        "position": 0
+      },
+      {
+        "id": 57,
+        "region": "West",
+        "round": 4,
+        "matchupIndex": 1,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 60,
+        "position": 1
+      },
+      {
+        "id": 58,
+        "region": "East",
+        "round": 4,
+        "matchupIndex": 2,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 61,
+        "position": 2
+      },
+      {
+        "id": 59,
+        "region": "Midwest",
+        "round": 4,
+        "matchupIndex": 3,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 61,
+        "position": 3
+      }
+    ],
+    "5": [
+      {
+        "id": 60,
+        "region": "Final Four",
+        "round": 5,
+        "matchupIndex": 0,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 62,
+        "position": 0
+      },
+      {
+        "id": 61,
+        "region": "Final Four",
+        "round": 5,
+        "matchupIndex": 1,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": 62,
+        "position": 1
+      }
+    ],
+    "6": [
+      {
+        "id": 62,
+        "region": "Championship",
+        "round": 6,
+        "matchupIndex": 0,
+        "teamA": null,
+        "teamB": null,
+        "winner": null,
+        "nextMatchupId": null,
+        "position": 0
+      }
+    ]
+  },
+  "completedRounds": [],
+  "games": [
+    {
+      "matchupId": 0,
+      "round": 1,
+      "teamA": {
+        "seed": 1,
+        "name": "Auburn"
+      },
+      "teamB": {
+        "seed": 16,
+        "name": "ALST/SFC"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 1,
+      "round": 1,
+      "teamA": {
+        "seed": 8,
+        "name": "Louisville"
+      },
+      "teamB": {
+        "seed": 9,
+        "name": "Creighton"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 2,
+      "round": 1,
+      "teamA": {
+        "seed": 5,
+        "name": "Michigan"
+      },
+      "teamB": {
+        "seed": 12,
+        "name": "UC San Diego"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 3,
+      "round": 1,
+      "teamA": {
+        "seed": 4,
+        "name": "Texas A&M"
+      },
+      "teamB": {
+        "seed": 13,
+        "name": "Yale"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 4,
+      "round": 1,
+      "teamA": {
+        "seed": 6,
+        "name": "Mississippi"
+      },
+      "teamB": {
+        "seed": 11,
+        "name": "SDSU/UNC"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 5,
+      "round": 1,
+      "teamA": {
+        "seed": 3,
+        "name": "Iowa St."
+      },
+      "teamB": {
+        "seed": 14,
+        "name": "Lipscomb"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 6,
+      "round": 1,
+      "teamA": {
+        "seed": 7,
+        "name": "Marquette"
+      },
+      "teamB": {
+        "seed": 10,
+        "name": "New Mexico"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 7,
+      "round": 1,
+      "teamA": {
+        "seed": 2,
+        "name": "Michigan St."
+      },
+      "teamB": {
+        "seed": 15,
+        "name": "Bryant"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 8,
+      "round": 1,
+      "teamA": {
+        "seed": 1,
+        "name": "Florida"
+      },
+      "teamB": {
+        "seed": 16,
+        "name": "Norfolk State"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 9,
+      "round": 1,
+      "teamA": {
+        "seed": 8,
+        "name": "Connecticut"
+      },
+      "teamB": {
+        "seed": 9,
+        "name": "Oklahoma"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 10,
+      "round": 1,
+      "teamA": {
+        "seed": 5,
+        "name": "Memphis"
+      },
+      "teamB": {
+        "seed": 12,
+        "name": "Colorado St."
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 11,
+      "round": 1,
+      "teamA": {
+        "seed": 4,
+        "name": "Maryland"
+      },
+      "teamB": {
+        "seed": 13,
+        "name": "Grand Canyon"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 12,
+      "round": 1,
+      "teamA": {
+        "seed": 6,
+        "name": "Missouri"
+      },
+      "teamB": {
+        "seed": 11,
+        "name": "Drake"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 13,
+      "round": 1,
+      "teamA": {
+        "seed": 3,
+        "name": "Texas Tech"
+      },
+      "teamB": {
+        "seed": 14,
+        "name": "NC-Wilmington"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 14,
+      "round": 1,
+      "teamA": {
+        "seed": 7,
+        "name": "Kansas"
+      },
+      "teamB": {
+        "seed": 10,
+        "name": "Arkansas"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 15,
+      "round": 1,
+      "teamA": {
+        "seed": 2,
+        "name": "St. John's"
+      },
+      "teamB": {
+        "seed": 15,
+        "name": "Neb. Omaha"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 16,
+      "round": 1,
+      "teamA": {
+        "seed": 1,
+        "name": "Duke"
+      },
+      "teamB": {
+        "seed": 16,
+        "name": "AMER/MSMM"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 17,
+      "round": 1,
+      "teamA": {
+        "seed": 8,
+        "name": "Mississippi St."
+      },
+      "teamB": {
+        "seed": 9,
+        "name": "Baylor"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 18,
+      "round": 1,
+      "teamA": {
+        "seed": 5,
+        "name": "Oregon"
+      },
+      "teamB": {
+        "seed": 12,
+        "name": "Liberty"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 19,
+      "round": 1,
+      "teamA": {
+        "seed": 4,
+        "name": "Arizona"
+      },
+      "teamB": {
+        "seed": 13,
+        "name": "Akron"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 20,
+      "round": 1,
+      "teamA": {
+        "seed": 6,
+        "name": "BYU"
+      },
+      "teamB": {
+        "seed": 11,
+        "name": "VCU"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 21,
+      "round": 1,
+      "teamA": {
+        "seed": 3,
+        "name": "Wisconsin"
+      },
+      "teamB": {
+        "seed": 14,
+        "name": "Montana"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 22,
+      "round": 1,
+      "teamA": {
+        "seed": 7,
+        "name": "St. Mary's"
+      },
+      "teamB": {
+        "seed": 10,
+        "name": "Vanderbilt"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 23,
+      "round": 1,
+      "teamA": {
+        "seed": 2,
+        "name": "Alabama"
+      },
+      "teamB": {
+        "seed": 15,
+        "name": "Robert Morris"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 24,
+      "round": 1,
+      "teamA": {
+        "seed": 1,
+        "name": "Houston"
+      },
+      "teamB": {
+        "seed": 16,
+        "name": "SIU-Edwardsville"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 25,
+      "round": 1,
+      "teamA": {
+        "seed": 8,
+        "name": "Gonzaga"
+      },
+      "teamB": {
+        "seed": 9,
+        "name": "Georgia"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 26,
+      "round": 1,
+      "teamA": {
+        "seed": 5,
+        "name": "Clemson"
+      },
+      "teamB": {
+        "seed": 12,
+        "name": "McNeese St."
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 27,
+      "round": 1,
+      "teamA": {
+        "seed": 4,
+        "name": "Purdue"
+      },
+      "teamB": {
+        "seed": 13,
+        "name": "High Point"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 28,
+      "round": 1,
+      "teamA": {
+        "seed": 6,
+        "name": "Illinois"
+      },
+      "teamB": {
+        "seed": 11,
+        "name": "TEX/XAV"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 29,
+      "round": 1,
+      "teamA": {
+        "seed": 3,
+        "name": "Kentucky"
+      },
+      "teamB": {
+        "seed": 14,
+        "name": "Troy"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 30,
+      "round": 1,
+      "teamA": {
+        "seed": 7,
+        "name": "UCLA"
+      },
+      "teamB": {
+        "seed": 10,
+        "name": "Utah St."
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    },
+    {
+      "matchupId": 31,
+      "round": 1,
+      "teamA": {
+        "seed": 2,
+        "name": "Tennessee"
+      },
+      "teamB": {
+        "seed": 15,
+        "name": "Wofford"
+      },
+      "winner": null,
+      "score": {
+        "teamA": 0,
+        "teamB": 0
+      },
+      "completed": false
+    }
+  ],
+  "scoringConfig": {
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6
+  },
+  "lastUpdated": "2025-03-19T21:49:38.249Z"
+}

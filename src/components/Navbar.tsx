@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authServices } from '../services/api';
+import api from '../services/api';
 
 const Navbar: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isTournamentLocked, setIsTournamentLocked] = useState<boolean>(false);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -25,7 +27,20 @@ const Navbar: React.FC = () => {
       }
     };
     
+    // Check tournament lock status
+    const checkTournamentStatus = async () => {
+      try {
+        const response = await api.get('/tournament/status');
+        setIsTournamentLocked(response.data.isLocked);
+      } catch (error) {
+        // If we can't determine lock status, default to unlocked
+        console.error('Error checking tournament status:', error);
+        setIsTournamentLocked(false);
+      }
+    };
+    
     checkLoginStatus();
+    checkTournamentStatus();
   }, []);
   
   const handleLogout = () => {
@@ -53,9 +68,14 @@ const Navbar: React.FC = () => {
               <Link to="/" className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                 Home
               </Link>
-              <Link to="/entry" className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-                Enter Bracket
-              </Link>
+              
+              {/* Only show Entry link if tournament is not locked */}
+              {!isTournamentLocked && (
+                <Link to="/entry" className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                  Enter Bracket
+                </Link>
+              )}
+              
               <Link to="/standings" className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                 Standings
               </Link>
@@ -142,13 +162,18 @@ const Navbar: React.FC = () => {
           >
             Home
           </Link>
-          <Link
-            to="/entry"
-            className="text-gray-300 hover:bg-blue-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Enter Bracket
-          </Link>
+          
+          {/* Only show Entry link if tournament is not locked */}
+          {!isTournamentLocked && (
+            <Link
+              to="/entry"
+              className="text-gray-300 hover:bg-blue-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Enter Bracket
+            </Link>
+          )}
+          
           <Link
             to="/standings"
             className="text-gray-300 hover:bg-blue-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
