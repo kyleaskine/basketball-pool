@@ -21,59 +21,68 @@ const isSameTeam = (a: Team | null, b: Team | null): boolean => {
   return a.name === b.name && a.seed === b.seed;
 };
 
-// Shared correct pick logic
+// Updated correct pick logic
 const isCorrectPickShared = (
   matchup: Matchup,
   team: Team | null,
-  actualResults?: BracketData,
+  actualResults?: BracketData & { teams?: Record<string, any> },
   highlightCorrectPicks?: boolean
 ): boolean => {
   // Don't highlight anything in round 1
-  if (matchup.round === 1 || !highlightCorrectPicks || !actualResults || !team) return false;
+  if (matchup.round === 1 || !highlightCorrectPicks || !actualResults || !team)
+    return false;
 
-  // For round 2 and above, find previous round matchups
-  const prevRound = matchup.round - 1;
-  const prevMatchups = actualResults[prevRound]?.filter(m => m.nextMatchupId === matchup.id) || [];
-  
-  if (prevMatchups.length === 0) return false;
-  
-  // Look for a matchup where this team won in the previous round
-  return prevMatchups.some(prevMatchup => 
-    prevMatchup.winner && 
-    prevMatchup.winner.name === team.name && 
-    prevMatchup.winner.seed === team.seed
-  );
+  // If we have the teams object, use the simpler logic
+  if (actualResults.teams && team) {
+    // Find previous round matchups
+    const prevRound = matchup.round - 1;
+    const prevMatchups =
+      actualResults[prevRound]?.filter((m) => m.nextMatchupId === matchup.id) ||
+      [];
+
+    if (prevMatchups.length === 0) return false;
+
+    // Team must not be eliminated to be correct
+    const teamInfo = actualResults.teams[team.name];
+    if (!teamInfo || teamInfo.eliminated) return false;
+
+    // Look for a matchup where this team won in the previous round
+    return prevMatchups.some(
+      (prevMatchup) =>
+        prevMatchup.winner &&
+        prevMatchup.winner.name === team.name &&
+        prevMatchup.winner.seed === team.seed
+    );
+  }
+
+  return false;
 };
 
-// Shared incorrect pick logic
+// Updated incorrect pick logic - much simpler with teams object
 const isIncorrectPickShared = (
   matchup: Matchup,
   team: Team | null,
   actualResults?: BracketData,
   highlightCorrectPicks?: boolean
 ): boolean => {
-  // Skip first round and basic checks
-  if (matchup.round === 1 || !highlightCorrectPicks || !actualResults || !team) return false;
+  // Skip basic cases
+  if (!team || !highlightCorrectPicks || !actualResults) return false;
 
   // Only check for teams selected as winners
-  if (!matchup.winner || !isSameTeam(matchup.winner, team)) return false;
+  //if (!matchup.winner || matchup.winner.name !== team.name) return false;
 
-  // Check ALL previous rounds for any losses
-  for (let round = 1; round < matchup.round; round++) {
-    const roundMatchups = actualResults[round] || [];
-    
-    for (const prevMatchup of roundMatchups) {
-      const teamIsTeamA = isSameTeam(prevMatchup.teamA, team);
-      const teamIsTeamB = isSameTeam(prevMatchup.teamB, team);
-      
-      if ((teamIsTeamA || teamIsTeamB) && prevMatchup.winner) {
-        const teamIsWinner = isSameTeam(prevMatchup.winner, team);
-        
-        if (!teamIsWinner) {
-          // Team appeared in a previous matchup but lost!
-          return true;
-        }
-      }
+  // If we have teams object, use it for a simple check
+  if (actualResults.teams && team.name in actualResults.teams) {
+    const teamInfo = actualResults.teams[team.name];
+
+    // Is the team eliminated and do we have valid elimination data?
+    if (teamInfo.eliminated && teamInfo.eliminationRound !== null) {
+      // Now TypeScript knows eliminationRound isn't null
+      return (
+        teamInfo.eliminationRound < matchup.round ||
+        (teamInfo.eliminationRound === matchup.round &&
+          teamInfo.eliminationMatchupId !== matchup.id)
+      );
     }
   }
 
@@ -123,7 +132,7 @@ const TeamSlot: React.FC<TeamSlotProps> = ({
   let bgAndBorderClasses = "bg-white border-gray-300";
   let textClasses = "";
 
-  if (isWinner) {
+  //if (isWinner) {
     if (isCorrectPick) {
       bgAndBorderClasses = "bg-green-100 border-green-500"; // Correct pick
       textClasses = "font-bold text-green-600"; // Bold text
@@ -135,7 +144,9 @@ const TeamSlot: React.FC<TeamSlotProps> = ({
     } else {
       bgAndBorderClasses = "bg-blue-100 border-blue-500"; // Standard selection
     }
-  } else if (isClickable) {
+  //} 
+  //else 
+  if (isClickable) {
     // Add subtle highlight for clickable matchups in admin mode
     bgAndBorderClasses = "bg-white border-blue-200";
   }
@@ -228,11 +239,21 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
 
   // Function to check if a pick is correct
   const isCorrectPick = (matchup: Matchup, team: Team | null): boolean => {
-    return isCorrectPickShared(matchup, team, actualResults, highlightCorrectPicks);
+    return isCorrectPickShared(
+      matchup,
+      team,
+      actualResults,
+      highlightCorrectPicks
+    );
   };
-  
+
   const isIncorrectPick = (matchup: Matchup, team: Team | null): boolean => {
-    return isIncorrectPickShared(matchup, team, actualResults, highlightCorrectPicks);
+    return isIncorrectPickShared(
+      matchup,
+      team,
+      actualResults,
+      highlightCorrectPicks
+    );
   };
 
   return (
@@ -269,9 +290,12 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
             >
               <TeamSlot
                 team={matchup.teamA}
-                isWinner={Boolean(matchup.winner && matchup.teamA && 
-                  matchup.winner.name === matchup.teamA.name && 
-                  matchup.winner.seed === matchup.teamA.seed)}
+                isWinner={Boolean(
+                  matchup.winner &&
+                    matchup.teamA &&
+                    matchup.winner.name === matchup.teamA.name &&
+                    matchup.winner.seed === matchup.teamA.seed
+                )}
                 onClick={() => {
                   if (matchup.teamA) onTeamSelect(matchup.id, matchup.teamA);
                 }}
@@ -287,9 +311,12 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
               <div className="h-1"></div>
               <TeamSlot
                 team={matchup.teamB}
-                isWinner={Boolean(matchup.winner && matchup.teamB && 
-                  matchup.winner.name === matchup.teamB.name && 
-                  matchup.winner.seed === matchup.teamB.seed)}
+                isWinner={Boolean(
+                  matchup.winner &&
+                    matchup.teamB &&
+                    matchup.winner.name === matchup.teamB.name &&
+                    matchup.winner.seed === matchup.teamB.seed
+                )}
                 onClick={() => {
                   if (matchup.teamB) onTeamSelect(matchup.id, matchup.teamB);
                 }}
@@ -595,11 +622,21 @@ const FinalFour: React.FC<FinalFourProps> = ({
 
   // Function to check if a pick is correct
   const isCorrectPick = (matchup: Matchup, team: Team | null): boolean => {
-    return isCorrectPickShared(matchup, team, actualResults, highlightCorrectPicks);
+    return isCorrectPickShared(
+      matchup,
+      team,
+      actualResults,
+      highlightCorrectPicks
+    );
   };
-  
+
   const isIncorrectPick = (matchup: Matchup, team: Team | null): boolean => {
-    return isIncorrectPickShared(matchup, team, actualResults, highlightCorrectPicks);
+    return isIncorrectPickShared(
+      matchup,
+      team,
+      actualResults,
+      highlightCorrectPicks
+    );
   };
 
   // Create click handlers for Final Four and Championship matchups
@@ -655,10 +692,14 @@ const FinalFour: React.FC<FinalFourProps> = ({
           <div className="relative">
             <TeamSlot
               team={finalFourMatchups[0].teamA}
-              isWinner={Boolean(finalFourMatchups[0].winner && finalFourMatchups[0].teamA && 
-                finalFourMatchups[0].winner.name === finalFourMatchups[0].teamA.name && 
-                finalFourMatchups[0].winner.seed === finalFourMatchups[0].teamA.seed)
-              }
+              isWinner={Boolean(
+                finalFourMatchups[0].winner &&
+                  finalFourMatchups[0].teamA &&
+                  finalFourMatchups[0].winner.name ===
+                    finalFourMatchups[0].teamA.name &&
+                  finalFourMatchups[0].winner.seed ===
+                    finalFourMatchups[0].teamA.seed
+              )}
               onClick={() => {
                 const team = finalFourMatchups[0].teamA;
                 if (team) onTeamSelect(finalFourMatchups[0].id, team);
@@ -682,10 +723,14 @@ const FinalFour: React.FC<FinalFourProps> = ({
             <div className="h-1"></div>
             <TeamSlot
               team={finalFourMatchups[0].teamB}
-              
-              isWinner={Boolean(finalFourMatchups[0].winner && finalFourMatchups[0].teamB && 
-                finalFourMatchups[0].winner.name === finalFourMatchups[0].teamB.name && 
-                finalFourMatchups[0].winner.seed === finalFourMatchups[0].teamB.seed)              }
+              isWinner={Boolean(
+                finalFourMatchups[0].winner &&
+                  finalFourMatchups[0].teamB &&
+                  finalFourMatchups[0].winner.name ===
+                    finalFourMatchups[0].teamB.name &&
+                  finalFourMatchups[0].winner.seed ===
+                    finalFourMatchups[0].teamB.seed
+              )}
               onClick={() => {
                 const team = finalFourMatchups[0].teamB;
                 if (team) onTeamSelect(finalFourMatchups[0].id, team);
@@ -712,10 +757,14 @@ const FinalFour: React.FC<FinalFourProps> = ({
           <div className="relative">
             <TeamSlot
               team={finalFourMatchups[1].teamA}
-              isWinner={Boolean(finalFourMatchups[1].winner && finalFourMatchups[1].teamA && 
-                finalFourMatchups[1].winner.name === finalFourMatchups[1].teamA.name && 
-                finalFourMatchups[1].winner.seed === finalFourMatchups[1].teamA.seed)
-              }
+              isWinner={Boolean(
+                finalFourMatchups[1].winner &&
+                  finalFourMatchups[1].teamA &&
+                  finalFourMatchups[1].winner.name ===
+                    finalFourMatchups[1].teamA.name &&
+                  finalFourMatchups[1].winner.seed ===
+                    finalFourMatchups[1].teamA.seed
+              )}
               onClick={() => {
                 const team = finalFourMatchups[1].teamA;
                 if (team) onTeamSelect(finalFourMatchups[1].id, team);
@@ -740,10 +789,14 @@ const FinalFour: React.FC<FinalFourProps> = ({
             <div className="h-1"></div>
             <TeamSlot
               team={finalFourMatchups[1].teamB}
-              isWinner={Boolean(finalFourMatchups[1].winner && finalFourMatchups[1].teamB && 
-                finalFourMatchups[1].winner.name === finalFourMatchups[1].teamB.name && 
-                finalFourMatchups[1].winner.seed === finalFourMatchups[1].teamB.seed)
-              }
+              isWinner={Boolean(
+                finalFourMatchups[1].winner &&
+                  finalFourMatchups[1].teamB &&
+                  finalFourMatchups[1].winner.name ===
+                    finalFourMatchups[1].teamB.name &&
+                  finalFourMatchups[1].winner.seed ===
+                    finalFourMatchups[1].teamB.seed
+              )}
               onClick={() => {
                 const team = finalFourMatchups[1].teamB;
                 if (team) onTeamSelect(finalFourMatchups[1].id, team);
@@ -785,10 +838,14 @@ const FinalFour: React.FC<FinalFourProps> = ({
             <div className="w-32">
               <TeamSlot
                 team={championshipMatchup.teamA}
-                isWinner={Boolean(championshipMatchup.winner && championshipMatchup.teamA && 
-                  championshipMatchup.winner.name === championshipMatchup.teamA.name && 
-                  championshipMatchup.winner.seed === championshipMatchup.teamA.seed)
-                }
+                isWinner={Boolean(
+                  championshipMatchup.winner &&
+                    championshipMatchup.teamA &&
+                    championshipMatchup.winner.name ===
+                      championshipMatchup.teamA.name &&
+                    championshipMatchup.winner.seed ===
+                      championshipMatchup.teamA.seed
+                )}
                 onClick={() => {
                   const team = championshipMatchup.teamA;
                   if (team) onTeamSelect(championshipMatchup.id, team);
@@ -814,10 +871,14 @@ const FinalFour: React.FC<FinalFourProps> = ({
             <div className="w-32">
               <TeamSlot
                 team={championshipMatchup.teamB}
-                isWinner={Boolean(championshipMatchup.winner && championshipMatchup.teamB && 
-                  championshipMatchup.winner.name === championshipMatchup.teamB.name && 
-                  championshipMatchup.winner.seed === championshipMatchup.teamB.seed)
-                }
+                isWinner={Boolean(
+                  championshipMatchup.winner &&
+                    championshipMatchup.teamB &&
+                    championshipMatchup.winner.name ===
+                      championshipMatchup.teamB.name &&
+                    championshipMatchup.winner.seed ===
+                      championshipMatchup.teamB.seed
+                )}
                 onClick={() => {
                   const team = championshipMatchup.teamB;
                   if (team) onTeamSelect(championshipMatchup.id, team);
@@ -850,14 +911,11 @@ const FinalFour: React.FC<FinalFourProps> = ({
               </p>
               <div
                 className={`border rounded-md p-1 mx-auto ${
-                  highlightCorrectPicks &&
-                  actualResults &&
-                  actualResults[6][0].winner
-                    ? actualResults[6][0].winner.name ===
-                      championshipMatchup.winner.name
-                      ? "bg-green-100 border-green-500"
-                      : "bg-red-50 border-red-300"
-                    : "bg-yellow-50 border-yellow-400"
+                  isCorrectPick(championshipMatchup, championshipMatchup.winner)
+                    ? "bg-green-100 border-green-500"
+                    : isIncorrectPick(championshipMatchup, championshipMatchup.winner)
+                      ? "bg-red-50 border-red-300"
+                      : "bg-yellow-50 border-yellow-400"
                 }`}
               >
                 <div className="flex items-center justify-center">
@@ -884,7 +942,7 @@ interface PrintStyleCompactBracketProps {
   submitAttempted?: boolean;
   readOnly?: boolean;
   highlightCorrectPicks?: boolean;
-  actualResults?: BracketData;
+  actualResults?: BracketData; // This now includes the teams property
   onMatchupClick?: (matchup: Matchup) => void;
   highlightIncomplete?: boolean;
 }

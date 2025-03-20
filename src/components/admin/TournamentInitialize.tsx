@@ -221,6 +221,23 @@ const TournamentInitialize: React.FC = () => {
 
     return bracket;
   };
+  const initializeTeams = () => {
+    const teams: { [key: string]: { seed: number; eliminated: boolean; eliminationRound: number | null; eliminationMatchupId: number | null } } = {};
+    
+    // Populate teams from all regions
+    Object.values(regions).forEach(region => {
+      region.teams.forEach(team => {
+        teams[team.name] = {
+          seed: team.seed,
+          eliminated: false,
+          eliminationRound: null,
+          eliminationMatchupId: null
+        };
+      });
+    });
+    
+    return teams;
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -298,6 +315,7 @@ const TournamentInitialize: React.FC = () => {
         results: templateBracket,
         completedRounds: [],
         games,
+        teams: useCustomFile && customFile ? null : initializeTeams(),
         scoringConfig: {
           1: 1,  // First round: 1 point
           2: 2,  // Second round: 2 points

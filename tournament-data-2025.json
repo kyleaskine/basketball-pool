@@ -1478,6 +1478,392 @@
       "completed": false
     }
   ],
+  "teams": {
+    "Auburn": {
+      "seed": 1,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "ALST/SFC": {
+      "seed": 16,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Louisville": {
+      "seed": 8,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Creighton": {
+      "seed": 9,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Michigan": {
+      "seed": 5,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "UC San Diego": {
+      "seed": 12,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Texas A&M": {
+      "seed": 4,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Yale": {
+      "seed": 13,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Mississippi": {
+      "seed": 6,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "SDSU/UNC": {
+      "seed": 11,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Iowa St.": {
+      "seed": 3,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Lipscomb": {
+      "seed": 14,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Marquette": {
+      "seed": 7,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "New Mexico": {
+      "seed": 10,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Michigan St.": {
+      "seed": 2,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Bryant": {
+      "seed": 15,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Florida": {
+      "seed": 1,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Norfolk State": {
+      "seed": 16,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Connecticut": {
+      "seed": 8,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Oklahoma": {
+      "seed": 9,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Memphis": {
+      "seed": 5,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Colorado St.": {
+      "seed": 12,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Maryland": {
+      "seed": 4,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Grand Canyon": {
+      "seed": 13,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Missouri": {
+      "seed": 6,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Drake": {
+      "seed": 11,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Texas Tech": {
+      "seed": 3,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "NC-Wilmington": {
+      "seed": 14,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Kansas": {
+      "seed": 7,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Arkansas": {
+      "seed": 10,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "St. John's": {
+      "seed": 2,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Neb. Omaha": {
+      "seed": 15,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Duke": {
+      "seed": 1,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "AMER/MSMM": {
+      "seed": 16,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Mississippi St.": {
+      "seed": 8,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Baylor": {
+      "seed": 9,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Oregon": {
+      "seed": 5,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Liberty": {
+      "seed": 12,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Arizona": {
+      "seed": 4,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Akron": {
+      "seed": 13,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "BYU": {
+      "seed": 6,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "VCU": {
+      "seed": 11,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Wisconsin": {
+      "seed": 3,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Montana": {
+      "seed": 14,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "St. Mary's": {
+      "seed": 7,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Vanderbilt": {
+      "seed": 10,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Alabama": {
+      "seed": 2,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Robert Morris": {
+      "seed": 15,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Houston": {
+      "seed": 1,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "SIU-Edwardsville": {
+      "seed": 16,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Gonzaga": {
+      "seed": 8,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Georgia": {
+      "seed": 9,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Clemson": {
+      "seed": 5,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "McNeese St.": {
+      "seed": 12,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Purdue": {
+      "seed": 4,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "High Point": {
+      "seed": 13,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Illinois": {
+      "seed": 6,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "TEX/XAV": {
+      "seed": 11,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Kentucky": {
+      "seed": 3,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Troy": {
+      "seed": 14,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "UCLA": {
+      "seed": 7,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Utah St.": {
+      "seed": 10,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Tennessee": {
+      "seed": 2,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    },
+    "Wofford": {
+      "seed": 15,
+      "eliminated": false,
+      "eliminationRound": null,
+      "eliminationMatchupId": null
+    }
+  },
   "scoringConfig": {
     "1": 1,
     "2": 2,
@@ -1486,5 +1872,5 @@
     "5": 5,
     "6": 6
   },
-  "lastUpdated": "2025-03-19T21:49:38.249Z"
+  "lastUpdated": "2025-03-20T14:23:34.916Z"
 }

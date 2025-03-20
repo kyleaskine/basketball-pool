@@ -25,6 +25,14 @@ export interface Team {
   
   export interface BracketData {
     [round: number]: Matchup[];
+    teams?: {
+      [teamName: string]: {
+        seed: number;
+        eliminated: boolean;
+        eliminationRound: number | null;
+        eliminationMatchupId: number | null;
+      }
+    };
   }
   
   export interface RegionData {

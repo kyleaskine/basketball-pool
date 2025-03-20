@@ -20,16 +20,24 @@ interface Game {
 }
 
 interface TournamentResults {
-  _id: string;
-  year: number;
-  results: BracketData;
-  completedRounds: number[];
-  games: Game[];
-  scoringConfig: {
-    [key: number]: number;
-  };
-  lastUpdated: string;
-}
+    _id: string;
+    year: number;
+    results: BracketData;
+    completedRounds: number[];
+    games: Game[];
+    teams: {
+      [teamName: string]: {
+        seed: number;
+        eliminated: boolean;
+        eliminationRound: number | null;
+        eliminationMatchupId: number | null;
+      }
+    };
+    scoringConfig: {
+      [key: number]: number;
+    };
+    lastUpdated: string;
+  }
 
 const AdminTournament: React.FC = () => {
   const [results, setResults] = useState<TournamentResults | null>(null);

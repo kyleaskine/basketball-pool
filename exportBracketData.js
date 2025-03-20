@@ -248,6 +248,20 @@ function generateGames(bracket) {
 // Create the tournament data structure
 const bracketStructure = initializeBracket();
 const games = generateGames(bracketStructure);
+// Initialize teams object with all teams
+const teams = {};
+
+// Process all regions to create teams object
+Object.values(regions).forEach(region => {
+  region.teams.forEach(team => {
+    teams[team.name] = {
+      seed: team.seed,
+      eliminated: false,
+      eliminationRound: null,
+      eliminationMatchupId: null
+    };
+  });
+});
 
 // Create the complete tournament data object
 const tournamentData = {
@@ -255,6 +269,7 @@ const tournamentData = {
   results: bracketStructure,
   completedRounds: [],
   games,
+  teams,
   scoringConfig: {
     1: 1,  // First round: 1 point
     2: 2,  // Second round: 2 points
