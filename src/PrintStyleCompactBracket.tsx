@@ -10,6 +10,7 @@ interface TeamSlotProps {
   submitAttempted?: boolean;
   readOnly?: boolean;
   isCorrectPick?: boolean;
+  isIncorrectPick?: boolean;
   onMatchupClick?: () => void;
   isClickable?: boolean;
 }
@@ -23,25 +24,28 @@ const TeamSlot: React.FC<TeamSlotProps> = ({
   submitAttempted = false,
   readOnly = false,
   isCorrectPick = false,
+  isIncorrectPick = false,
   onMatchupClick,
-  isClickable = false
+  isClickable = false,
 }) => {
   // Only show incomplete highlight if submitAttempted is true
   const showIncompleteHighlight = isIncomplete && submitAttempted;
-  
+
   // Determine cursor style based on props
-  const cursorStyle = (onMatchupClick || (!readOnly && team)) ? 'cursor-pointer' : 'cursor-default';
-  
+  const cursorStyle =
+    onMatchupClick || (!readOnly && team) ? "cursor-pointer" : "cursor-default";
+
   // Determine hover style based on whether the slot is clickable
-  const hoverStyle = (onMatchupClick || (!readOnly && team)) ? 'hover:bg-blue-50' : '';
-  
+  const hoverStyle =
+    onMatchupClick || (!readOnly && team) ? "hover:bg-blue-50" : "";
+
   if (!team) {
     return (
       <div
         className={`h-7 bg-gray-50 border border-gray-200 rounded-md flex items-center px-2 text-gray-400 text-xs ${
           reversed ? "flex-row-reverse" : ""
         } ${
-          showIncompleteHighlight ? 'border-red-400 border-2 bg-red-50' : ''
+          showIncompleteHighlight ? "border-red-400 border-2 bg-red-50" : ""
         } ${cursorStyle} ${hoverStyle}`}
         onClick={onMatchupClick}
       >
@@ -51,27 +55,31 @@ const TeamSlot: React.FC<TeamSlotProps> = ({
   }
 
   // Determine the background and border based on various states
-  let bgAndBorderClasses = 'bg-white border-gray-300';
-  
+  let bgAndBorderClasses = "bg-white border-gray-300";
+
   if (isWinner) {
     if (isCorrectPick) {
-      bgAndBorderClasses = 'bg-green-100 border-green-500'; // Correct pick
-    } else if (readOnly && isWinner) {
-      bgAndBorderClasses = 'bg-red-50 border-red-300'; // Incorrect pick when highlighting
+      bgAndBorderClasses = "bg-green-100 border-green-500"; // Correct pick
+    } else if (isIncorrectPick) {
+      bgAndBorderClasses = "bg-red-100 border-red-300"; // Incorrect pick
+    } else if (readOnly) {
+      bgAndBorderClasses = "bg-gray-100 border-gray-400"; // Unknown result
     } else {
-      bgAndBorderClasses = 'bg-blue-100 border-blue-500'; // Standard selection
+      bgAndBorderClasses = "bg-blue-100 border-blue-500"; // Standard selection
     }
   } else if (isClickable) {
     // Add subtle highlight for clickable matchups in admin mode
-    bgAndBorderClasses = 'bg-white border-blue-200';
+    bgAndBorderClasses = "bg-white border-blue-200";
   }
 
   return (
     <div
-      className={`h-7 border rounded-md flex items-center px-2 text-xs ${
-        cursorStyle
-      } ${bgAndBorderClasses} ${reversed ? "flex-row-reverse" : ""} ${
-        showIncompleteHighlight ? 'border-red-400 border-2 animate-pulse shadow-md' : ''
+      className={`h-7 border rounded-md flex items-center px-2 text-xs ${cursorStyle} ${bgAndBorderClasses} ${
+        reversed ? "flex-row-reverse" : ""
+      } ${
+        showIncompleteHighlight
+          ? "border-red-400 border-2 animate-pulse shadow-md"
+          : ""
       }`}
       onClick={onMatchupClick || (readOnly ? undefined : onClick)}
     >
@@ -116,7 +124,7 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
   highlightCorrectPicks = false,
   actualResults,
   onMatchupClick,
-  highlightIncomplete = false
+  highlightIncomplete = false,
 }) => {
   // Calculate correct spacing based on round
   const getSpacing = () => {
@@ -151,15 +159,68 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
   };
 
   // Function to check if a pick is correct
+  // Function to check if a pick is correct
   const isCorrectPick = (matchup: Matchup, team: Team | null): boolean => {
-    if (!highlightCorrectPicks || !actualResults || !team || !matchup.winner) return false;
-    
+    if (!highlightCorrectPicks || !actualResults || !team || !matchup.winner)
+      return false;
+
     // Find the corresponding matchup in the actual results
-    const actualMatchup = actualResults[matchup.round].find(m => m.id === matchup.id);
+    const actualMatchup = actualResults[matchup.round].find(
+      (m) => m.id === matchup.id
+    );
     if (!actualMatchup || !actualMatchup.winner) return false;
-    
+
     // Compare the winner
-    return actualMatchup.winner.name === team.name && actualMatchup.winner.seed === team.seed;
+    return (
+      actualMatchup.winner.name === team.name &&
+      actualMatchup.winner.seed === team.seed
+    );
+  };
+
+  // Function to determine if a pick should be shown as incorrect
+  const isIncorrectPick = (matchup: Matchup, team: Team | null): boolean => {
+    if (!highlightCorrectPicks || !actualResults || !team) return false;
+
+    // Find the corresponding matchup in the actual results
+    const actualMatchup = actualResults[matchup.round].find(
+      (m) => m.id === matchup.id
+    );
+    if (!actualMatchup) return false;
+
+    // Case 1: This team was picked as the winner but a different team won
+    if (
+      matchup.winner === team &&
+      actualMatchup.winner &&
+      (actualMatchup.winner.name !== team.name ||
+        actualMatchup.winner.seed !== team.seed)
+    ) {
+      return true;
+    }
+
+    // Case 2: For future rounds, check if this team was eliminated in an earlier round
+    if (matchup.winner === team && matchup.round > 1) {
+      // Check if this team exists in any previous round as a loser
+      for (let round = 1; round < matchup.round; round++) {
+        const prevRoundMatchups = actualResults[round] || [];
+
+        for (const prevMatchup of prevRoundMatchups) {
+          if (
+            prevMatchup.winner &&
+            ((prevMatchup.teamA?.name === team.name &&
+              prevMatchup.teamA?.seed === team.seed &&
+              prevMatchup.winner.name !== team.name) ||
+              (prevMatchup.teamB?.name === team.name &&
+                prevMatchup.teamB?.seed === team.seed &&
+                prevMatchup.winner.name !== team.name))
+          ) {
+            // This team was eliminated in a previous round
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   };
 
   return (
@@ -172,19 +233,23 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
       <div className={getSpacing()}>
         {matchups.map((matchup, index) => {
           // Check if this matchup is incomplete (has both teams but no winner)
-          const isIncomplete = matchup.teamA && matchup.teamB && !matchup.winner && 
-                              incompleteMatchups.includes(matchup.id);
-          
+          const isIncomplete =
+            matchup.teamA &&
+            matchup.teamB &&
+            !matchup.winner &&
+            incompleteMatchups.includes(matchup.id);
+
           // Determine if this matchup is clickable (for admin functions)
-          const isClickable = !!onMatchupClick && !!matchup.teamA && !!matchup.teamB;
-          
+          const isClickable =
+            !!onMatchupClick && !!matchup.teamA && !!matchup.teamB;
+
           // Create matchup click handler
           const handleMatchupClick = () => {
             if (onMatchupClick && matchup.teamA && matchup.teamB) {
               onMatchupClick(matchup);
             }
           };
-          
+
           return (
             <div
               key={matchup.id}
@@ -201,6 +266,7 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
                 submitAttempted={submitAttempted}
                 readOnly={readOnly}
                 isCorrectPick={isCorrectPick(matchup, matchup.teamA)}
+                isIncorrectPick={isIncorrectPick(matchup, matchup.teamA)}
                 onMatchupClick={isClickable ? handleMatchupClick : undefined}
                 isClickable={isClickable}
               />
@@ -216,6 +282,7 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
                 submitAttempted={submitAttempted}
                 readOnly={readOnly}
                 isCorrectPick={isCorrectPick(matchup, matchup.teamB)}
+                isIncorrectPick={isIncorrectPick(matchup, matchup.teamB)}
                 onMatchupClick={isClickable ? handleMatchupClick : undefined}
                 isClickable={isClickable}
               />
@@ -256,7 +323,7 @@ const ForwardRegion: React.FC<ForwardRegionProps> = ({
   highlightCorrectPicks = false,
   actualResults,
   onMatchupClick,
-  highlightIncomplete = false
+  highlightIncomplete = false,
 }) => {
   const firstRoundMatchups = bracketData[1].slice(
     firstRoundStart,
@@ -373,7 +440,7 @@ const ReverseRegion: React.FC<ReverseRegionProps> = ({
   highlightCorrectPicks = false,
   actualResults,
   onMatchupClick,
-  highlightIncomplete = false
+  highlightIncomplete = false,
 }) => {
   const firstRoundMatchups = bracketData[1].slice(
     firstRoundStart,
@@ -477,8 +544,8 @@ interface FinalFourProps {
   highlightIncomplete?: boolean;
 }
 
-const FinalFour: React.FC<FinalFourProps> = ({ 
-  bracketData, 
+const FinalFour: React.FC<FinalFourProps> = ({
+  bracketData,
   onTeamSelect,
   incompleteMatchups,
   submitAttempted,
@@ -486,59 +553,138 @@ const FinalFour: React.FC<FinalFourProps> = ({
   highlightCorrectPicks = false,
   actualResults,
   onMatchupClick,
-  highlightIncomplete = false
+  highlightIncomplete = false,
 }) => {
   const finalFourMatchups = bracketData[5];
   const championshipMatchup = bracketData[6][0];
 
   // Check if matchups are incomplete (has both teams but no winner)
-  const isFinalFour1Incomplete = finalFourMatchups[0].teamA && finalFourMatchups[0].teamB && 
-                              !finalFourMatchups[0].winner && 
-                              incompleteMatchups.includes(finalFourMatchups[0].id);
-  
-  const isFinalFour2Incomplete = finalFourMatchups[1].teamA && finalFourMatchups[1].teamB && 
-                              !finalFourMatchups[1].winner && 
-                              incompleteMatchups.includes(finalFourMatchups[1].id);
-  
-  const isChampionshipIncomplete = championshipMatchup.teamA && championshipMatchup.teamB && 
-                                !championshipMatchup.winner && 
-                                incompleteMatchups.includes(championshipMatchup.id);
+  const isFinalFour1Incomplete =
+    finalFourMatchups[0].teamA &&
+    finalFourMatchups[0].teamB &&
+    !finalFourMatchups[0].winner &&
+    incompleteMatchups.includes(finalFourMatchups[0].id);
+
+  const isFinalFour2Incomplete =
+    finalFourMatchups[1].teamA &&
+    finalFourMatchups[1].teamB &&
+    !finalFourMatchups[1].winner &&
+    incompleteMatchups.includes(finalFourMatchups[1].id);
+
+  const isChampionshipIncomplete =
+    championshipMatchup.teamA &&
+    championshipMatchup.teamB &&
+    !championshipMatchup.winner &&
+    incompleteMatchups.includes(championshipMatchup.id);
 
   // Function to check if a pick is correct
   const isCorrectPick = (matchup: Matchup, team: Team | null): boolean => {
-    if (!highlightCorrectPicks || !actualResults || !team || !matchup.winner) return false;
-    
+    if (!highlightCorrectPicks || !actualResults || !team || !matchup.winner)
+      return false;
+
     // Find the corresponding matchup in the actual results
-    const actualMatchup = actualResults[matchup.round].find(m => m.id === matchup.id);
+    const actualMatchup = actualResults[matchup.round].find(
+      (m) => m.id === matchup.id
+    );
     if (!actualMatchup || !actualMatchup.winner) return false;
-    
+
     // Compare the winner
-    return actualMatchup.winner.name === team.name && actualMatchup.winner.seed === team.seed;
+    return (
+      actualMatchup.winner.name === team.name &&
+      actualMatchup.winner.seed === team.seed
+    );
+  };
+
+  // Function to determine if a pick should be shown as incorrect
+  const isIncorrectPick = (matchup: Matchup, team: Team | null): boolean => {
+    if (!highlightCorrectPicks || !actualResults || !team) return false;
+
+    // Find the corresponding matchup in the actual results
+    const actualMatchup = actualResults[matchup.round].find(
+      (m) => m.id === matchup.id
+    );
+    if (!actualMatchup) return false;
+
+    // Case 1: This team was picked as the winner but a different team won
+    if (
+      matchup.winner === team &&
+      actualMatchup.winner &&
+      (actualMatchup.winner.name !== team.name ||
+        actualMatchup.winner.seed !== team.seed)
+    ) {
+      return true;
+    }
+
+    // Case 2: For future rounds, check if this team was eliminated in an earlier round
+    if (matchup.winner === team && matchup.round > 1) {
+      // Check if this team exists in any previous round as a loser
+      for (let round = 1; round < matchup.round; round++) {
+        const prevRoundMatchups = actualResults[round] || [];
+
+        for (const prevMatchup of prevRoundMatchups) {
+          if (
+            prevMatchup.winner &&
+            ((prevMatchup.teamA?.name === team.name &&
+              prevMatchup.teamA?.seed === team.seed &&
+              prevMatchup.winner.name !== team.name) ||
+              (prevMatchup.teamB?.name === team.name &&
+                prevMatchup.teamB?.seed === team.seed &&
+                prevMatchup.winner.name !== team.name))
+          ) {
+            // This team was eliminated in a previous round
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   };
 
   // Create click handlers for Final Four and Championship matchups
   const handleFinalFour1Click = () => {
-    if (onMatchupClick && finalFourMatchups[0].teamA && finalFourMatchups[0].teamB) {
+    if (
+      onMatchupClick &&
+      finalFourMatchups[0].teamA &&
+      finalFourMatchups[0].teamB
+    ) {
       onMatchupClick(finalFourMatchups[0]);
     }
   };
 
   const handleFinalFour2Click = () => {
-    if (onMatchupClick && finalFourMatchups[1].teamA && finalFourMatchups[1].teamB) {
+    if (
+      onMatchupClick &&
+      finalFourMatchups[1].teamA &&
+      finalFourMatchups[1].teamB
+    ) {
       onMatchupClick(finalFourMatchups[1]);
     }
   };
 
   const handleChampionshipClick = () => {
-    if (onMatchupClick && championshipMatchup.teamA && championshipMatchup.teamB) {
+    if (
+      onMatchupClick &&
+      championshipMatchup.teamA &&
+      championshipMatchup.teamB
+    ) {
       onMatchupClick(championshipMatchup);
     }
   };
 
   // Determine if matchups are clickable
-  const isFF1Clickable = !!onMatchupClick && !!finalFourMatchups[0].teamA && !!finalFourMatchups[0].teamB;
-  const isFF2Clickable = !!onMatchupClick && !!finalFourMatchups[1].teamA && !!finalFourMatchups[1].teamB;
-  const isChampClickable = !!onMatchupClick && !!championshipMatchup.teamA && !!championshipMatchup.teamB;
+  const isFF1Clickable =
+    !!onMatchupClick &&
+    !!finalFourMatchups[0].teamA &&
+    !!finalFourMatchups[0].teamB;
+  const isFF2Clickable =
+    !!onMatchupClick &&
+    !!finalFourMatchups[1].teamA &&
+    !!finalFourMatchups[1].teamB;
+  const isChampClickable =
+    !!onMatchupClick &&
+    !!championshipMatchup.teamA &&
+    !!championshipMatchup.teamB;
 
   return (
     <div className="flex flex-col items-center mx-2">
@@ -555,11 +701,20 @@ const FinalFour: React.FC<FinalFourProps> = ({
                 const team = finalFourMatchups[0].teamA;
                 if (team) onTeamSelect(finalFourMatchups[0].id, team);
               }}
-              isIncomplete={isFinalFour1Incomplete?? undefined}
+              isIncomplete={isFinalFour1Incomplete ?? undefined}
               submitAttempted={submitAttempted}
               readOnly={readOnly}
-              isCorrectPick={isCorrectPick(finalFourMatchups[0], finalFourMatchups[0].teamA)}
-              onMatchupClick={isFF1Clickable ? handleFinalFour1Click : undefined}
+              isCorrectPick={isCorrectPick(
+                finalFourMatchups[0],
+                finalFourMatchups[0].teamA
+              )}
+              isIncorrectPick={isIncorrectPick(
+                finalFourMatchups[0],
+                finalFourMatchups[0].teamA
+              )}
+              onMatchupClick={
+                isFF1Clickable ? handleFinalFour1Click : undefined
+              }
               isClickable={isFF1Clickable}
             />
             <div className="h-1"></div>
@@ -572,11 +727,20 @@ const FinalFour: React.FC<FinalFourProps> = ({
                 const team = finalFourMatchups[0].teamB;
                 if (team) onTeamSelect(finalFourMatchups[0].id, team);
               }}
-              isIncomplete={isFinalFour1Incomplete?? undefined}
+              isIncomplete={isFinalFour1Incomplete ?? undefined}
               submitAttempted={submitAttempted}
               readOnly={readOnly}
-              isCorrectPick={isCorrectPick(finalFourMatchups[0], finalFourMatchups[0].teamB)}
-              onMatchupClick={isFF1Clickable ? handleFinalFour1Click : undefined}
+              isCorrectPick={isCorrectPick(
+                finalFourMatchups[0],
+                finalFourMatchups[0].teamB
+              )}
+              isIncorrectPick={isIncorrectPick(
+                finalFourMatchups[0],
+                finalFourMatchups[0].teamB
+              )}
+              onMatchupClick={
+                isFF1Clickable ? handleFinalFour1Click : undefined
+              }
               isClickable={isFF1Clickable}
             />
           </div>
@@ -593,11 +757,20 @@ const FinalFour: React.FC<FinalFourProps> = ({
                 if (team) onTeamSelect(finalFourMatchups[1].id, team);
               }}
               reversed={true}
-              isIncomplete={isFinalFour2Incomplete?? undefined}
+              isIncomplete={isFinalFour2Incomplete ?? undefined}
               submitAttempted={submitAttempted}
               readOnly={readOnly}
-              isCorrectPick={isCorrectPick(finalFourMatchups[1], finalFourMatchups[1].teamA)}
-              onMatchupClick={isFF2Clickable ? handleFinalFour2Click : undefined}
+              isCorrectPick={isCorrectPick(
+                finalFourMatchups[1],
+                finalFourMatchups[1].teamA
+              )}
+              isIncorrectPick={isIncorrectPick(
+                finalFourMatchups[1],
+                finalFourMatchups[1].teamA
+              )}
+              onMatchupClick={
+                isFF2Clickable ? handleFinalFour2Click : undefined
+              }
               isClickable={isFF2Clickable}
             />
             <div className="h-1"></div>
@@ -611,11 +784,20 @@ const FinalFour: React.FC<FinalFourProps> = ({
                 if (team) onTeamSelect(finalFourMatchups[1].id, team);
               }}
               reversed={true}
-              isIncomplete={isFinalFour2Incomplete?? undefined}
+              isIncomplete={isFinalFour2Incomplete ?? undefined}
               submitAttempted={submitAttempted}
               readOnly={readOnly}
-              isCorrectPick={isCorrectPick(finalFourMatchups[1], finalFourMatchups[1].teamB)}
-              onMatchupClick={isFF2Clickable ? handleFinalFour2Click : undefined}
+              isCorrectPick={isCorrectPick(
+                finalFourMatchups[1],
+                finalFourMatchups[1].teamB
+              )}
+              isIncorrectPick={isIncorrectPick(
+                finalFourMatchups[1],
+                finalFourMatchups[1].teamB
+              )}
+              onMatchupClick={
+                isFF2Clickable ? handleFinalFour2Click : undefined
+              }
               isClickable={isFF2Clickable}
             />
           </div>
@@ -623,11 +805,12 @@ const FinalFour: React.FC<FinalFourProps> = ({
       </div>
       <div className="flex justify-center items-start mb-3 w-full max-w-xs">
         {/* Championship */}
-        <div className={`border-2 rounded-lg p-1 w-full ${
-          isChampionshipIncomplete && submitAttempted
-            ? 'border-red-500 bg-red-50 animate-pulse' 
-            : 'border-yellow-500 bg-yellow-50'
-        } ${isChampClickable ? 'cursor-pointer' : ''}`}
+        <div
+          className={`border-2 rounded-lg p-1 w-full ${
+            isChampionshipIncomplete && submitAttempted
+              ? "border-red-500 bg-red-50 animate-pulse"
+              : "border-yellow-500 bg-yellow-50"
+          } ${isChampClickable ? "cursor-pointer" : ""}`}
           onClick={isChampClickable ? handleChampionshipClick : undefined}
         >
           <p className="text-center text-xs font-bold text-yellow-800 mb-0.5">
@@ -644,11 +827,20 @@ const FinalFour: React.FC<FinalFourProps> = ({
                   const team = championshipMatchup.teamA;
                   if (team) onTeamSelect(championshipMatchup.id, team);
                 }}
-                isIncomplete={isChampionshipIncomplete?? undefined}
+                isIncomplete={isChampionshipIncomplete ?? undefined}
                 submitAttempted={submitAttempted}
                 readOnly={readOnly}
-                isCorrectPick={isCorrectPick(championshipMatchup, championshipMatchup.teamA)}
-                onMatchupClick={isChampClickable ? handleChampionshipClick : undefined}
+                isCorrectPick={isCorrectPick(
+                  championshipMatchup,
+                  championshipMatchup.teamA
+                )}
+                isIncorrectPick={isIncorrectPick(
+                  championshipMatchup,
+                  championshipMatchup.teamA
+                )}
+                onMatchupClick={
+                  isChampClickable ? handleChampionshipClick : undefined
+                }
                 isClickable={isChampClickable}
               />
             </div>
@@ -664,11 +856,20 @@ const FinalFour: React.FC<FinalFourProps> = ({
                   if (team) onTeamSelect(championshipMatchup.id, team);
                 }}
                 reversed={true}
-                isIncomplete={isChampionshipIncomplete?? undefined}
+                isIncomplete={isChampionshipIncomplete ?? undefined}
                 submitAttempted={submitAttempted}
                 readOnly={readOnly}
-                isCorrectPick={isCorrectPick(championshipMatchup, championshipMatchup.teamB)}
-                onMatchupClick={isChampClickable ? handleChampionshipClick : undefined}
+                isCorrectPick={isCorrectPick(
+                  championshipMatchup,
+                  championshipMatchup.teamB
+                )}
+                isIncorrectPick={isIncorrectPick(
+                  championshipMatchup,
+                  championshipMatchup.teamB
+                )}
+                onMatchupClick={
+                  isChampClickable ? handleChampionshipClick : undefined
+                }
                 isClickable={isChampClickable}
               />
             </div>
@@ -680,12 +881,18 @@ const FinalFour: React.FC<FinalFourProps> = ({
               <p className="text-center text-xs font-bold text-yellow-800 mb-0.5">
                 CHAMPION
               </p>
-              <div className={`border rounded-md p-1 mx-auto ${
-                highlightCorrectPicks && actualResults && actualResults[6][0].winner ? 
-                  (actualResults[6][0].winner.name === championshipMatchup.winner.name ? 
-                    'bg-green-100 border-green-500' : 'bg-red-50 border-red-300') : 
-                  'bg-green-100 border-green-500'
-              }`}>
+              <div
+                className={`border rounded-md p-1 mx-auto ${
+                  highlightCorrectPicks &&
+                  actualResults &&
+                  actualResults[6][0].winner
+                    ? actualResults[6][0].winner.name ===
+                      championshipMatchup.winner.name
+                      ? "bg-green-100 border-green-500"
+                      : "bg-red-50 border-red-300"
+                    : "bg-green-100 border-green-500"
+                }`}
+              >
                 <div className="flex items-center justify-center">
                   <span className="font-bold text-[10px] w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center mr-1">
                     {championshipMatchup.winner.seed}
@@ -715,6 +922,7 @@ interface PrintStyleCompactBracketProps {
   highlightIncomplete?: boolean;
 }
 
+// Add this debug logging at the start of the PrintStyleCompactBracket component
 const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
   bracketData,
   onTeamSelect = () => {},
@@ -724,7 +932,7 @@ const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
   highlightCorrectPicks = false,
   actualResults,
   onMatchupClick,
-  highlightIncomplete = false
+  highlightIncomplete = false,
 }) => {
   return (
     <div className="bg-white p-4 rounded-lg shadow-md mb-6 overflow-x-auto">

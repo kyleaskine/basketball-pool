@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { authServices } from '../services/api';
-import api from '../services/api';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { authServices } from "../services/api";
+import api from "../services/api";
 
 const Navbar: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -9,51 +9,51 @@ const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isTournamentLocked, setIsTournamentLocked] = useState<boolean>(false);
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     // Check login status
     const checkLoginStatus = async () => {
       const loggedIn = authServices.isLoggedIn();
       setIsLoggedIn(loggedIn);
-      
+
       // If logged in, check if admin
       if (loggedIn) {
         try {
           const adminCheck = await authServices.isAdmin();
           setIsAdmin(adminCheck.isAdmin);
         } catch (error) {
-          console.error('Error checking admin status:', error);
+          console.error("Error checking admin status:", error);
         }
       }
     };
-    
+
     // Check tournament lock status
     const checkTournamentStatus = async () => {
       try {
-        const response = await api.get('/tournament/status');
+        const response = await api.get("/tournament/status");
         setIsTournamentLocked(response.data.isLocked);
       } catch (error) {
         // If we can't determine lock status, default to unlocked
-        console.error('Error checking tournament status:', error);
+        console.error("Error checking tournament status:", error);
         setIsTournamentLocked(false);
       }
     };
-    
+
     checkLoginStatus();
     checkTournamentStatus();
   }, []);
-  
+
   const handleLogout = () => {
     authServices.logout();
     setIsLoggedIn(false);
     setIsAdmin(false);
-    navigate('/');
+    navigate("/");
   };
-  
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-  
+
   return (
     <nav className="bg-blue-800 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -65,27 +65,48 @@ const Navbar: React.FC = () => {
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
-              <Link to="/" className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+              <Link
+                to="/"
+                className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+              >
                 Home
               </Link>
-              
+
               {/* Only show Entry link if tournament is not locked */}
               {!isTournamentLocked && (
-                <Link to="/entry" className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                <Link
+                  to="/entry"
+                  className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                >
                   Enter Bracket
                 </Link>
               )}
-              
-              <Link to="/standings" className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+
+              <Link
+                to="/standings"
+                className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+              >
                 Standings
               </Link>
+              <Link
+                to="/tournament/results"
+                className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Tournament Results
+              </Link>
               {isLoggedIn && (
-                <Link to="/brackets" className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                <Link
+                  to="/brackets"
+                  className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                >
                   My Brackets
                 </Link>
               )}
               {isAdmin && (
-                <Link to="/admin" className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                <Link
+                  to="/admin"
+                  className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+                >
                   Admin
                 </Link>
               )}
@@ -153,7 +174,7 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* Mobile menu */}
-      <div className={`${isMenuOpen ? 'block' : 'hidden'} sm:hidden`}>
+      <div className={`${isMenuOpen ? "block" : "hidden"} sm:hidden`}>
         <div className="px-2 pt-2 pb-3 space-y-1">
           <Link
             to="/"
@@ -162,7 +183,7 @@ const Navbar: React.FC = () => {
           >
             Home
           </Link>
-          
+
           {/* Only show Entry link if tournament is not locked */}
           {!isTournamentLocked && (
             <Link
@@ -173,13 +194,20 @@ const Navbar: React.FC = () => {
               Enter Bracket
             </Link>
           )}
-          
+
           <Link
             to="/standings"
             className="text-gray-300 hover:bg-blue-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
             onClick={() => setIsMenuOpen(false)}
           >
             Standings
+          </Link>
+          <Link
+            to="/tournament/results"
+            className="text-gray-300 hover:bg-blue-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Tournament Results
           </Link>
           {isLoggedIn && (
             <Link

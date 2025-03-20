@@ -29,6 +29,10 @@ const StandingsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filterDisplayed, setFilterDisplayed] = useState<number>(50); // Number of entries to display
+  
+  // New state variables for sorting
+  const [sortField, setSortField] = useState<string>('position');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     const fetchStandings = async () => {
@@ -64,13 +68,45 @@ const StandingsPage: React.FC = () => {
     }
   };
 
+  // Handle column header click for sorting
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      // If already sorting by this field, toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // Start sorting by this field
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
   // Filter standings by search term
   const filteredStandings = standingsData?.standings.filter(participant => 
     participant.participantName.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
+  // Sort the filtered standings
+  const sortedStandings = [...filteredStandings].sort((a, b) => {
+    let comparison = 0;
+    
+    switch (sortField) {
+      case 'name':
+        comparison = a.participantName.localeCompare(b.participantName);
+        break;
+      case 'score':
+        comparison = a.score - b.score;
+        break;
+      case 'position':
+      default:
+        comparison = a.position - b.position;
+        break;
+    }
+    
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
+
   // Limit displayed results based on filterDisplayed
-  const displayedStandings = filteredStandings.slice(0, filterDisplayed);
+  const displayedStandings = sortedStandings.slice(0, filterDisplayed);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
@@ -156,14 +192,32 @@ const StandingsPage: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16 cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('position')}
+                    >
                       Rank
+                      {sortField === 'position' && (
+                        <span className="ml-1">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                      )}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('name')}
+                    >
                       Participant
+                      {sortField === 'name' && (
+                        <span className="ml-1">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                      )}
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
+                    <th 
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24 cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('score')}
+                    >
                       Score
+                      {sortField === 'score' && (
+                        <span className="ml-1">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                      )}
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                       Actions

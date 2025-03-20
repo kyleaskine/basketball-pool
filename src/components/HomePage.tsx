@@ -1,26 +1,35 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { updateServices, Update } from "../services/api";
+import TopStandingsWidget from "./TopStandingsWidget";
+import api from "../services/api";
 
 const HomePage: React.FC = () => {
   const [updates, setUpdates] = useState<Update[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isTournamentLocked, setIsTournamentLocked] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchUpdates = async () => {
+    const fetchData = async () => {
       try {
-        const data = await updateServices.getUpdates();
-        setUpdates(data);
+        // Fetch updates
+        const updatesData = await updateServices.getUpdates();
+        setUpdates(updatesData);
+        
+        // Check if tournament is locked
+        const tournamentStatus = await api.get('/tournament/status');
+        setIsTournamentLocked(tournamentStatus.data.isLocked);
+        
         setIsLoading(false);
       } catch (err) {
-        console.error("Error fetching updates:", err);
+        console.error("Error fetching data:", err);
         setError("Failed to load the latest updates");
         setIsLoading(false);
       }
     };
 
-    fetchUpdates();
+    fetchData();
   }, []);
 
   const formatDate = (dateString: string) => {
@@ -106,22 +115,33 @@ const HomePage: React.FC = () => {
           <div className="md:flex">
             <div className="p-8 md:w-2/3">
               <h1 className="text-4xl font-bold mb-4">Kyle's Basketball Pool 2025</h1>
-              <p className="text-xl mb-6">
-                Join the excitement of college basketball's biggest tournament!
-                Fill out your bracket and compete with friends, family, and
-                colleagues.
-              </p>
-              <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded mb-6">
-                <p className="font-medium">
-                  Entry Deadline: March 20, 2025 at 12:00 PM ET
-                </p>
-              </div>
-              <Link
-                to="/entry"
-                className="inline-block bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-bold py-3 px-6 rounded-lg shadow-lg transition-colors"
-              >
-                Fill Out Your Bracket Now
-              </Link>
+              
+              {isTournamentLocked ? (
+                // Show standings widget after brackets lock
+                <div className="bg-white rounded-lg p-4">
+                  <TopStandingsWidget limit={5} />
+                </div>
+              ) : (
+                // Show entry deadline before brackets lock
+                <>
+                  <p className="text-xl mb-6">
+                    Join the excitement of college basketball's biggest tournament!
+                    Fill out your bracket and compete with friends, family, and
+                    colleagues.
+                  </p>
+                  <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded mb-6">
+                    <p className="font-medium">
+                      Entry Deadline: March 20, 2025 at 12:00 PM ET
+                    </p>
+                  </div>
+                  <Link
+                    to="/entry"
+                    className="inline-block bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-bold py-3 px-6 rounded-lg shadow-lg transition-colors"
+                  >
+                    Fill Out Your Bracket Now
+                  </Link>
+                </>
+              )}
             </div>
             <div className="md:w-1/3 bg-blue-900 flex items-center justify-center p-8">
               <img
@@ -184,72 +204,99 @@ const HomePage: React.FC = () => {
           )}
         </div>
 
-        {/* How It Works Section */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            How It Works
-          </h2>
+        {/* How It Works Section - Only show before tournament starts */}
+        {!isTournamentLocked && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              How It Works
+            </h2>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-              <div className="flex justify-center mb-4">
-                <div className="bg-blue-100 text-blue-800 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">
-                  1
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <div className="flex justify-center mb-4">
+                  <div className="bg-blue-100 text-blue-800 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">
+                    1
+                  </div>
                 </div>
+                <h3 className="text-lg font-semibold text-center mb-2">
+                  Fill Out Your Bracket
+                </h3>
+                <p className="text-gray-600 text-center">
+                  Predict winners for all 63 tournament games, from the First
+                  Round to the Championship.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-center mb-2">
-                Fill Out Your Bracket
-              </h3>
-              <p className="text-gray-600 text-center">
-                Predict winners for all 63 tournament games, from the First
-                Round to the Championship.
-              </p>
-            </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-              <div className="flex justify-center mb-4">
-                <div className="bg-blue-100 text-blue-800 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">
-                  2
+              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <div className="flex justify-center mb-4">
+                  <div className="bg-blue-100 text-blue-800 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">
+                    2
+                  </div>
                 </div>
+                <h3 className="text-lg font-semibold text-center mb-2">
+                  Submit Before Deadline
+                </h3>
+                <p className="text-gray-600 text-center">
+                  All brackets must be submitted by March 20, 2025 at 12:00 PM ET,
+                  before the tournament begins.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-center mb-2">
-                Submit Before Deadline
-              </h3>
-              <p className="text-gray-600 text-center">
-                All brackets must be submitted by March 20, 2025 at 12:00 PM ET,
-                before the tournament begins.
-              </p>
-            </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-              <div className="flex justify-center mb-4">
-                <div className="bg-blue-100 text-blue-800 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">
-                  3
+              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <div className="flex justify-center mb-4">
+                  <div className="bg-blue-100 text-blue-800 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">
+                    3
+                  </div>
                 </div>
+                <h3 className="text-lg font-semibold text-center mb-2">
+                  Track Your Progress
+                </h3>
+                <p className="text-gray-600 text-center">
+                  Follow along as the tournament unfolds and see how your
+                  predictions stack up!
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-center mb-2">
-                Track Your Progress
-              </h3>
-              <p className="text-gray-600 text-center">
-                Follow along as the tournament unfolds and see how your
-                predictions stack up!
-              </p>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* CTA Section */}
+        {/* CTA Section - Show different CTAs based on tournament status */}
         <div className="bg-gray-100 rounded-lg p-8 text-center mb-8">
-          <h2 className="text-2xl font-bold mb-4">Ready to Make Your Picks?</h2>
-          <p className="text-lg text-gray-700 mb-6">
-            Don't miss out on the excitement of March Madness 2025!
-          </p>
-          <Link
-            to="/entry"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-colors"
-          >
-            Fill Out Your Bracket Now
-          </Link>
+          {isTournamentLocked ? (
+            <>
+              <h2 className="text-2xl font-bold mb-4">Tournament In Progress!</h2>
+              <p className="text-lg text-gray-700 mb-6">
+                Check the standings and see how your bracket is performing.
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Link
+                  to="/standings"
+                  className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-colors"
+                >
+                  View Standings
+                </Link>
+                <Link
+                  to="/tournament/results"
+                  className="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-colors"
+                >
+                  Tournament Results
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold mb-4">Ready to Make Your Picks?</h2>
+              <p className="text-lg text-gray-700 mb-6">
+                Don't miss out on the excitement of March Madness 2025!
+              </p>
+              <Link
+                to="/entry"
+                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-colors"
+              >
+                Fill Out Your Bracket Now
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>

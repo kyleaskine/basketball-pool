@@ -50,10 +50,12 @@ const AdminTournament: React.FC = () => {
     fetchTournamentResults();
   }, []);
 
-  const fetchTournamentResults = async () => {
+// Add these debugging console logs in fetchTournamentResults function
+const fetchTournamentResults = async () => {
     setIsLoading(true);
     try {
       const response = await api.get('/tournament/results');
+      console.log('Tournament results fetched:', response.data);
       setResults(response.data);
       setError(null);
     } catch (err) {
@@ -225,6 +227,10 @@ const AdminTournament: React.FC = () => {
         return;
       }
       
+      console.log('Saving game result for matchup:', activeMatchup.matchupId);
+      console.log('Winner:', winner);
+      console.log('Scores:', { teamA: scoreA, teamB: scoreB });
+      
       // Add query parameter to auto-calculate scores
       const response = await api.put(`/tournament/games/${activeMatchup.matchupId}?calculateScores=true`, {
         winner,
@@ -235,8 +241,22 @@ const AdminTournament: React.FC = () => {
         completed: true
       });
       
+      console.log('Game result saved, API response:', response.data);
+      
       // Update local state with updated tournament data
-      setResults(response.data.tournament || response.data);
+      if (response.data.tournament) {
+        console.log('Setting results with tournament data from response');
+        setResults(response.data.tournament);
+      } else {
+        console.log('Setting results with direct response data');
+        setResults(response.data);
+        
+        // If we're still having issues, force a full reload of tournament data
+        if (!response.data.results) {
+          console.log('No results in response, forcing refresh of tournament data');
+          fetchTournamentResults();
+        }
+      }
       
       // Clear editing state
       setActiveMatchup(null);

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { bracketServices } from '../services/api';
 import { BracketData } from '../types';
 import PrintStyleCompactBracket from '../PrintStyleCompactBracket';
+import api from '../services/api';
 
 const BracketView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -11,6 +12,7 @@ const BracketView: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [bracketData, setBracketData] = useState<BracketData | null>(null);
+  const [tournamentResults, setTournamentResults] = useState<BracketData | null>(null);
   const [bracketInfo, setBracketInfo] = useState<{
     participantName: string;
     isLocked: boolean;
@@ -21,8 +23,23 @@ const BracketView: React.FC = () => {
     totalEntries?: number;
   } | null>(null);
   
+  // Function to fetch tournament results
+  const fetchTournamentResults = async () => {
+    try {
+      const response = await api.get('/tournament/results');
+      console.log('Tournament results fetched:', response.data);
+      
+      if (response.data && response.data.results) {
+        setTournamentResults(response.data.results);
+      }
+    } catch (err) {
+      console.error('Error fetching tournament results:', err);
+      // Don't set an error - we'll still show the bracket without results
+    }
+  };
+  
   useEffect(() => {
-    const loadBracket = async () => {
+    const loadData = async () => {
       if (!id) {
         setError('Invalid bracket ID');
         setIsLoading(false);
@@ -30,6 +47,10 @@ const BracketView: React.FC = () => {
       }
       
       try {
+        // First, load the tournament results
+        await fetchTournamentResults();
+        
+        // Then try to get the bracket
         // Try to get the token from localStorage
         const token = localStorage.getItem('token');
         
@@ -60,6 +81,7 @@ const BracketView: React.FC = () => {
           entryNumber: response.entryNumber,
           totalEntries: response.totalEntries
         });
+        
         setIsLoading(false);
       } catch (error) {
         console.error('Error loading bracket:', error);
@@ -68,7 +90,18 @@ const BracketView: React.FC = () => {
       }
     };
     
-    loadBracket();
+    loadData();
+    
+    // Set up a periodic refresh of tournament results if the bracket is locked
+    const intervalId = setInterval(() => {
+      if (bracketInfo && bracketInfo.isLocked) {
+        fetchTournamentResults();
+      }
+    }, 60000); // Refresh every minute
+    
+    return () => {
+      clearInterval(intervalId);
+    };
   }, [id]);
   
   const formatDate = (dateString: string) => {
@@ -176,12 +209,39 @@ const BracketView: React.FC = () => {
         </div>
       )}
       
+      {/* Manual refresh button for tournament results */}
+      {bracketInfo.isLocked && (
+        <div className="mb-6">
+          <button 
+            onClick={fetchTournamentResults}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Refresh Tournament Results
+          </button>
+          <span className="ml-3 text-sm text-gray-600">
+            (Results automatically refresh every minute)
+          </span>
+        </div>
+      )}
+      
       {/* Display the bracket in view-only mode */}
       <PrintStyleCompactBracket
         bracketData={bracketData}
         readOnly={true}
-        highlightCorrectPicks={bracketInfo.isLocked}
+        highlightCorrectPicks={bracketInfo.isLocked && !!tournamentResults}
+        actualResults={tournamentResults || undefined}
       />
+      
+      {/* Link to tournament results */}
+      <div className="mt-8 text-center">
+        <a 
+          href="/tournament/results"
+          className="text-blue-600 hover:underline"
+          target="_blank"
+        >
+          View Full Tournament Results
+        </a>
+      </div>
     </div>
   );
 };
