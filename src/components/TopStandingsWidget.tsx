@@ -55,7 +55,7 @@ const TopStandingsWidget: React.FC<TopStandingsWidgetProps> = ({ limit = 5 }) =>
   
   return (
     <div className="bg-white rounded-lg shadow-md p-4">
-      <h2 className="text-lg font-bold text-blue-800 mb-3">Leader Board</h2>
+      <h2 className="text-lg font-bold text-blue-800 mb-3">Leaderboard</h2>
       
       <div className="overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
