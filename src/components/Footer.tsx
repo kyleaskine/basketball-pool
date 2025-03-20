@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { authServices } from '../services/api';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { authServices } from "../services/api";
 
 const Footer: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -25,41 +25,64 @@ const Footer: React.FC = () => {
               The ultimate basketball bracket challenge
             </p>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
             <div>
               <h3 className="font-semibold mb-2">Quick Links</h3>
               <ul className="space-y-1">
                 <li>
-                  <Link to="/" className="text-gray-300 hover:text-white text-sm">
+                  <Link
+                    to="/"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
                     Home
                   </Link>
                 </li>
                 <li>
-                  <Link to="/entry" className="text-gray-300 hover:text-white text-sm">
+                  <Link
+                    to="/entry"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
                     Enter Bracket
                   </Link>
                 </li>
                 <li>
-                  <Link to="/standings" className="text-gray-300 hover:text-white text-sm">
+                  <Link
+                    to="/standings"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
                     Standings
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/prizes"
+                    className="text-gray-300 hover:text-white text-sm"
+                  >
+                    Prizes
                   </Link>
                 </li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-semibold mb-2">Account</h3>
               <ul className="space-y-1">
                 {isLoggedIn ? (
                   <li>
-                    <Link to="/brackets" className="text-gray-300 hover:text-white text-sm">
+                    <Link
+                      to="/brackets"
+                      className="text-gray-300 hover:text-white text-sm"
+                    >
                       My Brackets
                     </Link>
                   </li>
                 ) : (
                   <li>
-                    <Link to="/login" className="text-gray-300 hover:text-white text-sm">
+                    <Link
+                      to="/login"
+                      className="text-gray-300 hover:text-white text-sm"
+                    >
                       Sign In
                     </Link>
                   </li>
@@ -68,13 +91,12 @@ const Footer: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="mt-6 pt-4 border-t border-blue-700 text-center text-sm text-gray-300">
-          <p>
-            &copy; {currentYear} Kyle Askine
-          </p>
+          <p>&copy; {currentYear} Kyle Askine</p>
           <p className="mt-1">
-            Tournament games: March 20-April 7, 2025 • Championship: April 7 at Alamodome
+            Tournament games: March 20-April 7, 2025 • Championship: April 7 at
+            Alamodome
           </p>
         </div>
       </div>

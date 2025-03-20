@@ -133,19 +133,19 @@ const TeamSlot: React.FC<TeamSlotProps> = ({
   let textClasses = "";
 
   //if (isWinner) {
-    if (isCorrectPick) {
-      bgAndBorderClasses = "bg-green-100 border-green-500"; // Correct pick
-      textClasses = "font-bold text-green-600"; // Bold text
-    } else if (isIncorrectPick) {
-      bgAndBorderClasses = "bg-red-100 border-red-300"; // Incorrect pick
-      textClasses = "line-through italic text-red-600"; // Strikethrough text
-    } else if (readOnly) {
-      //bgAndBorderClasses = "bg-gray-100 border-gray-400"; // Unknown result
-    } else {
-      bgAndBorderClasses = "bg-blue-100 border-blue-500"; // Standard selection
-    }
-  //} 
-  //else 
+  if (isCorrectPick) {
+    bgAndBorderClasses = "bg-green-100 border-green-500"; // Correct pick
+    textClasses = "font-bold text-green-600"; // Bold text
+  } else if (isIncorrectPick) {
+    bgAndBorderClasses = "bg-red-100 border-red-300"; // Incorrect pick
+    textClasses = "line-through italic text-red-600"; // Strikethrough text
+  } else if (readOnly) {
+    //bgAndBorderClasses = "bg-gray-100 border-gray-400"; // Unknown result
+  } else {
+    bgAndBorderClasses = "bg-blue-100 border-blue-500"; // Standard selection
+  }
+  //}
+  //else
   if (isClickable) {
     // Add subtle highlight for clickable matchups in admin mode
     bgAndBorderClasses = "bg-white border-blue-200";
@@ -913,9 +913,12 @@ const FinalFour: React.FC<FinalFourProps> = ({
                 className={`border rounded-md p-1 mx-auto ${
                   isCorrectPick(championshipMatchup, championshipMatchup.winner)
                     ? "bg-green-100 border-green-500"
-                    : isIncorrectPick(championshipMatchup, championshipMatchup.winner)
-                      ? "bg-red-50 border-red-300"
-                      : "bg-yellow-50 border-yellow-400"
+                    : isIncorrectPick(
+                        championshipMatchup,
+                        championshipMatchup.winner
+                      )
+                    ? "bg-red-50 border-red-300"
+                    : "bg-yellow-50 border-yellow-400"
                 }`}
               >
                 <div className="flex items-center justify-center">
@@ -963,108 +966,110 @@ const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
     <div className="bg-white p-4 rounded-lg shadow-md mb-6 overflow-x-auto">
       <h2 className="text-xl font-bold mb-3 text-center">Tournament Bracket</h2>
 
-      <div className="flex justify-center">
-        {/* Left side of bracket - South and West regions (flowing left to right) */}
-        <div className="flex flex-col">
-          <ForwardRegion
-            bracketData={bracketData}
-            firstRoundStart={0}
-            firstRoundEnd={8}
-            showLabel={true}
-            regionName="South"
-            onTeamSelect={onTeamSelect}
-            incompleteMatchups={incompleteMatchups}
-            submitAttempted={submitAttempted}
-            readOnly={readOnly}
-            highlightCorrectPicks={highlightCorrectPicks}
-            actualResults={actualResults}
-            onMatchupClick={onMatchupClick}
-            highlightIncomplete={highlightIncomplete}
-          />
+      <div className="overflow-x-auto" style={{ minWidth: "100%" }}>
+        <div className="flex px-4 min-w-[1200px] justify-start md:justify-center">
+          {/* Left side of bracket - South and West regions (flowing left to right) */}
+          <div className="flex flex-col">
+            <ForwardRegion
+              bracketData={bracketData}
+              firstRoundStart={0}
+              firstRoundEnd={8}
+              showLabel={true}
+              regionName="South"
+              onTeamSelect={onTeamSelect}
+              incompleteMatchups={incompleteMatchups}
+              submitAttempted={submitAttempted}
+              readOnly={readOnly}
+              highlightCorrectPicks={highlightCorrectPicks}
+              actualResults={actualResults}
+              onMatchupClick={onMatchupClick}
+              highlightIncomplete={highlightIncomplete}
+            />
 
-          <div className="my-5"></div>
+            <div className="my-5"></div>
 
-          <ForwardRegion
-            bracketData={bracketData}
-            firstRoundStart={8}
-            firstRoundEnd={16}
-            showLabel={false}
-            regionName="West"
-            onTeamSelect={onTeamSelect}
-            incompleteMatchups={incompleteMatchups}
-            submitAttempted={submitAttempted}
-            readOnly={readOnly}
-            highlightCorrectPicks={highlightCorrectPicks}
-            actualResults={actualResults}
-            onMatchupClick={onMatchupClick}
-            highlightIncomplete={highlightIncomplete}
-          />
-        </div>
+            <ForwardRegion
+              bracketData={bracketData}
+              firstRoundStart={8}
+              firstRoundEnd={16}
+              showLabel={false}
+              regionName="West"
+              onTeamSelect={onTeamSelect}
+              incompleteMatchups={incompleteMatchups}
+              submitAttempted={submitAttempted}
+              readOnly={readOnly}
+              highlightCorrectPicks={highlightCorrectPicks}
+              actualResults={actualResults}
+              onMatchupClick={onMatchupClick}
+              highlightIncomplete={highlightIncomplete}
+            />
+          </div>
 
-        {/* Center - Final Four & Championship */}
-        <div className="flex flex-col justify-center relative min-w-32">
-          <div
-            className="absolute min-w-70"
-            style={{
-              left: "-85px",
-              width: "300px", // Explicitly set width to cover the entire Final Four area
-              zIndex: 10, // Ensure this is above other elements that might block clicks
-            }}
-          >
-            <div className="text-xs font-bold text-center text-red-800 mb-1">
-              Final Four
-            </div>
-            <div>
-              <FinalFour
-                bracketData={bracketData}
-                onTeamSelect={onTeamSelect}
-                incompleteMatchups={incompleteMatchups}
-                submitAttempted={submitAttempted}
-                readOnly={readOnly}
-                highlightCorrectPicks={highlightCorrectPicks}
-                actualResults={actualResults}
-                onMatchupClick={onMatchupClick}
-                highlightIncomplete={highlightIncomplete}
-              />
+          {/* Center - Final Four & Championship */}
+          <div className="flex flex-col justify-center relative min-w-32">
+            <div
+              className="absolute min-w-70"
+              style={{
+                left: "-85px",
+                width: "300px", // Explicitly set width to cover the entire Final Four area
+                zIndex: 10, // Ensure this is above other elements that might block clicks
+              }}
+            >
+              <div className="text-xs font-bold text-center text-red-800 mb-1">
+                Final Four
+              </div>
+              <div>
+                <FinalFour
+                  bracketData={bracketData}
+                  onTeamSelect={onTeamSelect}
+                  incompleteMatchups={incompleteMatchups}
+                  submitAttempted={submitAttempted}
+                  readOnly={readOnly}
+                  highlightCorrectPicks={highlightCorrectPicks}
+                  actualResults={actualResults}
+                  onMatchupClick={onMatchupClick}
+                  highlightIncomplete={highlightIncomplete}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Right side of bracket - East and Midwest regions (flowing right to left) */}
-        <div className="flex flex-col">
-          <ReverseRegion
-            bracketData={bracketData}
-            firstRoundStart={16}
-            firstRoundEnd={24}
-            showLabel={true}
-            regionName="East"
-            onTeamSelect={onTeamSelect}
-            incompleteMatchups={incompleteMatchups}
-            submitAttempted={submitAttempted}
-            readOnly={readOnly}
-            highlightCorrectPicks={highlightCorrectPicks}
-            actualResults={actualResults}
-            onMatchupClick={onMatchupClick}
-            highlightIncomplete={highlightIncomplete}
-          />
+          {/* Right side of bracket - East and Midwest regions (flowing right to left) */}
+          <div className="flex flex-col">
+            <ReverseRegion
+              bracketData={bracketData}
+              firstRoundStart={16}
+              firstRoundEnd={24}
+              showLabel={true}
+              regionName="East"
+              onTeamSelect={onTeamSelect}
+              incompleteMatchups={incompleteMatchups}
+              submitAttempted={submitAttempted}
+              readOnly={readOnly}
+              highlightCorrectPicks={highlightCorrectPicks}
+              actualResults={actualResults}
+              onMatchupClick={onMatchupClick}
+              highlightIncomplete={highlightIncomplete}
+            />
 
-          <div className="my-5"></div>
+            <div className="my-5"></div>
 
-          <ReverseRegion
-            bracketData={bracketData}
-            firstRoundStart={24}
-            firstRoundEnd={32}
-            showLabel={false}
-            regionName="Midwest"
-            onTeamSelect={onTeamSelect}
-            incompleteMatchups={incompleteMatchups}
-            submitAttempted={submitAttempted}
-            readOnly={readOnly}
-            highlightCorrectPicks={highlightCorrectPicks}
-            actualResults={actualResults}
-            onMatchupClick={onMatchupClick}
-            highlightIncomplete={highlightIncomplete}
-          />
+            <ReverseRegion
+              bracketData={bracketData}
+              firstRoundStart={24}
+              firstRoundEnd={32}
+              showLabel={false}
+              regionName="Midwest"
+              onTeamSelect={onTeamSelect}
+              incompleteMatchups={incompleteMatchups}
+              submitAttempted={submitAttempted}
+              readOnly={readOnly}
+              highlightCorrectPicks={highlightCorrectPicks}
+              actualResults={actualResults}
+              onMatchupClick={onMatchupClick}
+              highlightIncomplete={highlightIncomplete}
+            />
+          </div>
         </div>
       </div>
     </div>

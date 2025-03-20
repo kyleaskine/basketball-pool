@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import api from '../services/api';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import api from "../services/api";
 
 interface Participant {
   position: number;
@@ -24,29 +24,33 @@ interface StandingsData {
 }
 
 const StandingsPage: React.FC = () => {
-  const [standingsData, setStandingsData] = useState<StandingsData | null>(null);
+  const [standingsData, setStandingsData] = useState<StandingsData | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [filterDisplayed, setFilterDisplayed] = useState<number>(50); // Number of entries to display
-  
+
   // New state variables for sorting
-  const [sortField, setSortField] = useState<string>('position');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortField, setSortField] = useState<string>("position");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
     const fetchStandings = async () => {
       setIsLoading(true);
       try {
-        const response = await api.get('/tournament/standings');
+        const response = await api.get("/tournament/standings");
         setStandingsData(response.data);
         setError(null);
       } catch (err: any) {
-        console.error('Error fetching standings:', err);
+        console.error("Error fetching standings:", err);
         if (err.response && err.response.status === 400) {
-          setError('No tournament results available yet. Check back after the games begin!');
+          setError(
+            "No tournament results available yet. Check back after the games begin!"
+          );
         } else {
-          setError('Failed to load standings. Please try again later.');
+          setError("Failed to load standings. Please try again later.");
         }
       } finally {
         setIsLoading(false);
@@ -58,13 +62,20 @@ const StandingsPage: React.FC = () => {
 
   const getRoundName = (round: number): string => {
     switch (round) {
-      case 1: return 'First Round';
-      case 2: return 'Second Round';
-      case 3: return 'Sweet 16';
-      case 4: return 'Elite 8';
-      case 5: return 'Final Four';
-      case 6: return 'Championship';
-      default: return `Round ${round}`;
+      case 1:
+        return "First Round";
+      case 2:
+        return "Second Round";
+      case 3:
+        return "Sweet 16";
+      case 4:
+        return "Elite 8";
+      case 5:
+        return "Final Four";
+      case 6:
+        return "Championship";
+      default:
+        return `Round ${round}`;
     }
   };
 
@@ -72,37 +83,40 @@ const StandingsPage: React.FC = () => {
   const handleSort = (field: string) => {
     if (sortField === field) {
       // If already sorting by this field, toggle direction
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       // Start sorting by this field
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
   // Filter standings by search term
-  const filteredStandings = standingsData?.standings.filter(participant => 
-    participant.participantName.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  const filteredStandings =
+    standingsData?.standings.filter((participant) =>
+      participant.participantName
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    ) || [];
 
   // Sort the filtered standings
   const sortedStandings = [...filteredStandings].sort((a, b) => {
     let comparison = 0;
-    
+
     switch (sortField) {
-      case 'name':
+      case "name":
         comparison = a.participantName.localeCompare(b.participantName);
         break;
-      case 'score':
+      case "score":
         comparison = a.score - b.score;
         break;
-      case 'position':
+      case "position":
       default:
         comparison = a.position - b.position;
         break;
     }
-    
-    return sortDirection === 'asc' ? comparison : -comparison;
+
+    return sortDirection === "asc" ? comparison : -comparison;
   });
 
   // Limit displayed results based on filterDisplayed
@@ -110,8 +124,10 @@ const StandingsPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <h1 className="text-3xl font-bold text-blue-800 mb-2">Tournament Standings</h1>
-      
+      <h1 className="text-3xl font-bold text-blue-800 mb-2">
+        Tournament Standings
+      </h1>
+
       {isLoading ? (
         <div className="flex justify-center p-12">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -127,25 +143,33 @@ const StandingsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
                 <p className="text-sm text-gray-600">Total Brackets</p>
-                <p className="text-2xl font-bold text-blue-800">{standingsData.stats.totalBrackets}</p>
+                <p className="text-2xl font-bold text-blue-800">
+                  {standingsData.stats.totalBrackets}
+                </p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-gray-600">Average Score</p>
-                <p className="text-2xl font-bold text-blue-800">{standingsData.stats.averageScore.toFixed(1)}</p>
+                <p className="text-2xl font-bold text-blue-800">
+                  {standingsData.stats.averageScore.toFixed(1)}
+                </p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-gray-600">High Score</p>
-                <p className="text-2xl font-bold text-blue-800">{standingsData.stats.highestScore}</p>
+                <p className="text-2xl font-bold text-blue-800">
+                  {standingsData.stats.highestScore}
+                </p>
               </div>
             </div>
             <div className="mt-4 text-center">
               <p className="text-sm text-gray-600">Completed Rounds</p>
               <div className="flex flex-wrap justify-center gap-2 mt-1">
                 {standingsData.stats.completedRounds.length === 0 ? (
-                  <span className="text-yellow-600">Tournament hasn't started yet</span>
+                  <span className="text-yellow-600">
+                    Tournament hasn't started yet
+                  </span>
                 ) : (
-                  standingsData.stats.completedRounds.map(round => (
-                    <span 
+                  standingsData.stats.completedRounds.map((round) => (
+                    <span
                       key={round}
                       className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
                     >
@@ -156,7 +180,7 @@ const StandingsPage: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Search and Filter Controls */}
           <div className="mb-6 flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -181,42 +205,50 @@ const StandingsPage: React.FC = () => {
               </select>
             </div>
           </div>
-          
+
           {/* Standings Table */}
           {filteredStandings.length === 0 ? (
             <div className="bg-gray-100 p-6 rounded-lg text-center">
-              <p className="text-gray-600">No participants found matching your search.</p>
+              <p className="text-gray-600">
+                No participants found matching your search.
+              </p>
             </div>
           ) : (
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th 
+                    <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16 cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort('position')}
+                      onClick={() => handleSort("position")}
                     >
                       Rank
-                      {sortField === 'position' && (
-                        <span className="ml-1">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                      {sortField === "position" && (
+                        <span className="ml-1">
+                          {sortDirection === "asc" ? "▲" : "▼"}
+                        </span>
                       )}
                     </th>
-                    <th 
+                    <th
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort('name')}
+                      onClick={() => handleSort("name")}
                     >
                       Participant
-                      {sortField === 'name' && (
-                        <span className="ml-1">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                      {sortField === "name" && (
+                        <span className="ml-1">
+                          {sortDirection === "asc" ? "▲" : "▼"}
+                        </span>
                       )}
                     </th>
-                    <th 
+                    <th
                       className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24 cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort('score')}
+                      onClick={() => handleSort("score")}
                     >
                       Score
-                      {sortField === 'score' && (
-                        <span className="ml-1">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                      {sortField === "score" && (
+                        <span className="ml-1">
+                          {sortDirection === "asc" ? "▲" : "▼"}
+                        </span>
                       )}
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
@@ -226,20 +258,27 @@ const StandingsPage: React.FC = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {displayedStandings.map((participant) => (
-                    <tr 
+                    <tr
                       key={`${participant.id}-${participant.entryNumber}`}
-                      className={`hover:bg-gray-50 ${participant.position <= 3 ? 'bg-yellow-50' : ''}`}
+                      className={`hover:bg-gray-50 ${
+                        participant.position <= 3 ? "bg-yellow-50" : ""
+                      }`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className={`text-sm font-bold ${
-                          participant.position === 1 ? 'text-yellow-600' :
-                          participant.position === 2 ? 'text-gray-500' :
-                          participant.position === 3 ? 'text-amber-700' :
-                          'text-gray-900'
-                        }`}>
-                          {participant.position === 1 ? '🏆 ' : ''}
-                          {participant.position === 2 ? '🥈 ' : ''}
-                          {participant.position === 3 ? '🥉 ' : ''}
+                        <div
+                          className={`text-sm font-bold ${
+                            participant.position === 1
+                              ? "text-yellow-600"
+                              : participant.position === 2
+                              ? "text-gray-500"
+                              : participant.position === 3
+                              ? "text-amber-700"
+                              : "text-gray-900"
+                          }`}
+                        >
+                          {participant.position === 1 ? "🏆 " : ""}
+                          {participant.position === 2 ? "🥈 " : ""}
+                          {participant.position === 3 ? "🥉 " : ""}
                           {participant.position}
                         </div>
                       </td>
@@ -259,7 +298,7 @@ const StandingsPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <Link 
+                        <Link
                           to={`/bracket/view/${participant.id}`}
                           className="text-blue-600 hover:text-blue-900"
                           target="_blank"
@@ -271,11 +310,12 @@ const StandingsPage: React.FC = () => {
                   ))}
                 </tbody>
               </table>
-              
+
               {/* Show count of filtered results */}
               {searchTerm && (
                 <div className="p-3 text-center text-sm text-gray-600">
-                  Showing {Math.min(filterDisplayed, filteredStandings.length)} of {filteredStandings.length} results matching "{searchTerm}"
+                  Showing {Math.min(filterDisplayed, filteredStandings.length)}{" "}
+                  of {filteredStandings.length} results matching "{searchTerm}"
                 </div>
               )}
             </div>

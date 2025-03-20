@@ -102,6 +102,12 @@ const Navbar: React.FC = () => {
                   My Brackets
                 </Link>
               )}
+              <Link
+                to="/prizes"
+                className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Prizes
+              </Link>
               {isAdmin && (
                 <Link
                   to="/admin"
@@ -218,6 +224,13 @@ const Navbar: React.FC = () => {
               My Brackets
             </Link>
           )}
+          <Link
+            to="/prizes"
+            className="text-gray-300 hover:bg-blue-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Prizes
+          </Link>
           {isAdmin && (
             <Link
               to="/admin"

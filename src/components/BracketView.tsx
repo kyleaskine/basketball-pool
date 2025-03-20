@@ -50,44 +50,50 @@ const BracketView: React.FC = () => {
         setIsLoading(false);
         return;
       }
-
+    
       try {
         // First, load the tournament results
         await fetchTournamentResults();
-
-        // Then try to get the bracket
-        // Try to get the token from localStorage
-        const token = localStorage.getItem("token");
-
-        // First try with auth token if available
-        let response;
+    
+        // Try to get the bracket directly first - this will work if it's locked and publicly viewable
         try {
-          // For authenticated users viewing their own brackets
-          response = await bracketServices.getBracket(id, null);
-        } catch (authError) {
-          // If not authorized, try with edit token from URL (if present)
+          const response = await bracketServices.getBracket(id, null);
+          setBracketData(response.picks);
+          setBracketInfo({
+            participantName: response.participantName,
+            isLocked: response.isLocked,
+            score: response.score,
+            createdAt: response.createdAt,
+            editToken: response.editToken,
+            entryNumber: response.entryNumber,
+            totalEntries: response.totalEntries,
+          });
+          setIsLoading(false);
+          return;
+        } catch (directError) {
+          // If direct access fails, check for token in URL or localStorage
           const urlParams = new URLSearchParams(window.location.search);
           const editToken = urlParams.get("token");
-
+    
           if (editToken) {
-            response = await bracketServices.getBracket(id, editToken);
-          } else {
-            throw new Error("You do not have permission to view this bracket.");
+            const response = await bracketServices.getBracket(id, editToken);
+            setBracketData(response.picks);
+            setBracketInfo({
+              participantName: response.participantName,
+              isLocked: response.isLocked,
+              score: response.score,
+              createdAt: response.createdAt,
+              editToken: response.editToken,
+              entryNumber: response.entryNumber,
+              totalEntries: response.totalEntries,
+            });
+            setIsLoading(false);
+            return;
           }
+    
+          // If we still can't access the bracket, show error
+          throw new Error("You do not have permission to view this bracket.");
         }
-
-        setBracketData(response.picks);
-        setBracketInfo({
-          participantName: response.participantName,
-          isLocked: response.isLocked,
-          score: response.score,
-          createdAt: response.createdAt,
-          editToken: response.editToken,
-          entryNumber: response.entryNumber,
-          totalEntries: response.totalEntries,
-        });
-
-        setIsLoading(false);
       } catch (error) {
         console.error("Error loading bracket:", error);
         setError(

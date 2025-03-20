@@ -21,6 +21,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { authServices } from "./services/api";
 import TournamentResultsView from "./components/TournamentResultsView";
+import PrizesPage from "./components/PrizesPage";
 
 // Route guard for Admin Routes
 const AdminRoute = ({ children }: { children: React.ReactElement }) => {
@@ -163,6 +164,7 @@ function App() {
             <Route path="/bracket/edit/:id" element={<BracketEdit />} />
             <Route path="/bracket/view/:id" element={<BracketView />} />
             <Route path="/success" element={<SuccessPage />} />
+            <Route path="/prizes" element={<PrizesPage />} />
             <Route path="/standings" element={<StandingsPage />} />
 
             {/* Admin routes */}
