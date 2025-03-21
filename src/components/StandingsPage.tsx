@@ -24,6 +24,8 @@ interface Participant {
   // Additional tracking data
   teamsStillAlive?: string[];
   futureRoundPoints?: {[key: string]: number};
+  // Display position for ties
+  displayPosition?: string;
 }
 
 interface Stats {
@@ -42,6 +44,7 @@ const StandingsPage: React.FC = () => {
   const [standingsData, setStandingsData] = useState<StandingsData | null>(
     null
   );
+  const [processedStandings, setProcessedStandings] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -52,6 +55,37 @@ const StandingsPage: React.FC = () => {
   const [sortField, setSortField] = useState<string>("position");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
+  // Calculate tied rankings
+  const calculateTiedRankings = (participants: Participant[]): Participant[] => {
+    const sortedByScore = [...participants].sort((a, b) => b.score - a.score);
+    
+    let currentRank = 1;
+    let currentScore = sortedByScore[0]?.score;
+    let sameRankCount = 0;
+    
+    return sortedByScore.map((participant, index) => {
+      // If the score is different from the previous one, update the rank
+      if (participant.score !== currentScore) {
+        currentRank += sameRankCount;
+        currentScore = participant.score;
+        sameRankCount = 1;
+      } else {
+        sameRankCount++;
+      }
+      
+      // Set the display position based on ties
+      const hasTie = sortedByScore.filter(p => p.score === participant.score).length > 1;
+      const displayPosition = hasTie ? `t${currentRank}` : `${currentRank}`;
+      
+      return {
+        ...participant,
+        position: currentRank,
+        displayPosition
+      };
+    });
+  };
+
+  // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -98,7 +132,7 @@ const StandingsPage: React.FC = () => {
     fetchData();
   }, []);
 
-  // After fetching, ensure we have proper defaults if data is missing
+  // Process standings data separately to avoid infinite loop
   useEffect(() => {
     if (standingsData && standingsData.standings) {
       // Create a new array with updated objects to avoid mutation warnings
@@ -108,15 +142,11 @@ const StandingsPage: React.FC = () => {
         teamsStillAlive: participant.teamsStillAlive || []
       }));
       
-      // Only update if we actually made changes
-      if (updatedStandings.some((p, i) => 
-        !p.futureRoundPoints || !p.teamsStillAlive
-      )) {
-        setStandingsData({
-          ...standingsData,
-          standings: updatedStandings
-        });
-      }
+      // Apply tied rankings calculation
+      const processedWithTiedRanks = calculateTiedRankings(updatedStandings);
+      
+      // Store in separate state
+      setProcessedStandings(processedWithTiedRanks);
     }
   }, [standingsData]);
 
@@ -206,7 +236,7 @@ const StandingsPage: React.FC = () => {
   
   // Filter standings by search term
   const filteredStandings =
-    standingsData?.standings.filter((participant) =>
+    processedStandings.filter((participant) =>
       participant.participantName
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
@@ -417,7 +447,7 @@ const StandingsPage: React.FC = () => {
                               {participant.position === 1 ? "🏆 " : ""}
                               {participant.position === 2 ? "🥈 " : ""}
                               {participant.position === 3 ? "🥉 " : ""}
-                              {participant.position}
+                              {participant.displayPosition || participant.position}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -463,12 +493,11 @@ const StandingsPage: React.FC = () => {
                           <td className="px-6 py-4 whitespace-nowrap">
                             {renderTeamWithStatus(participant.runnerUp)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                             <Link
                               to={`/bracket/view/${participant.id}`}
                               className="text-blue-600 hover:text-blue-900"
                               target="_blank"
-                              onClick={(e) => e.stopPropagation()}
                             >
                               View Bracket
                             </Link>

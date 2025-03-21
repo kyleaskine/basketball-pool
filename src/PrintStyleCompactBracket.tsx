@@ -186,7 +186,7 @@ interface RegionColumnProps {
   readOnly?: boolean;
   highlightCorrectPicks?: boolean;
   actualResults?: BracketData;
-  onMatchupClick?: (matchup: Matchup) => void;
+  onMatchupClick?: (matchup: Matchup, slot: "A" | "B") => void;
   highlightIncomplete?: boolean;
 }
 
@@ -272,21 +272,27 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
             !matchup.winner &&
             incompleteMatchups.includes(matchup.id);
 
-          // Determine if this matchup is clickable (for admin functions)
+          // Determine if this matchup is clickable (for admin functions or stats view)
           const isClickable =
             !!onMatchupClick && !!matchup.teamA && !!matchup.teamB;
 
           // Create matchup click handler
-          const handleMatchupClick = () => {
-            if (onMatchupClick && matchup.teamA && matchup.teamB) {
-              onMatchupClick(matchup);
+          const handleMatchupClick = (matchup: Matchup, slot: "A" | "B") => {
+            if (onMatchupClick) {
+              onMatchupClick(matchup, slot);
             }
           };
+
+          // Check if this is round 2 or later (for stats view)
+          const isRound2OrAbove = round >= 2;
+          const shouldHandleClick = isRound2OrAbove && onMatchupClick;
 
           return (
             <div
               key={matchup.id}
-              className={`relative ${index === 0 ? getFirstItemMargin() : ""}`}
+              className={`relative ${index === 0 ? getFirstItemMargin() : ""} ${
+                shouldHandleClick ? "cursor-pointer" : ""
+              }`}
             >
               <TeamSlot
                 team={matchup.teamA}
@@ -305,7 +311,11 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
                 readOnly={readOnly}
                 isCorrectPick={isCorrectPick(matchup, matchup.teamA)}
                 isIncorrectPick={isIncorrectPick(matchup, matchup.teamA)}
-                onMatchupClick={isClickable ? handleMatchupClick : undefined}
+                onMatchupClick={
+                  shouldHandleClick
+                    ? () => handleMatchupClick(matchup, "A")
+                    : undefined
+                }
                 isClickable={isClickable}
               />
               <div className="h-1"></div>
@@ -326,7 +336,11 @@ const RegionColumn: React.FC<RegionColumnProps> = ({
                 readOnly={readOnly}
                 isCorrectPick={isCorrectPick(matchup, matchup.teamB)}
                 isIncorrectPick={isIncorrectPick(matchup, matchup.teamB)}
-                onMatchupClick={isClickable ? handleMatchupClick : undefined}
+                onMatchupClick={
+                  shouldHandleClick
+                    ? () => handleMatchupClick(matchup, "B")
+                    : undefined
+                }
                 isClickable={isClickable}
               />
             </div>
@@ -349,7 +363,7 @@ interface ForwardRegionProps {
   readOnly?: boolean;
   highlightCorrectPicks?: boolean;
   actualResults?: BracketData;
-  onMatchupClick?: (matchup: Matchup) => void;
+  onMatchupClick?: (matchup: Matchup, slot: "A" | "B") => void;
   highlightIncomplete?: boolean;
 }
 
@@ -466,7 +480,7 @@ interface ReverseRegionProps {
   readOnly?: boolean;
   highlightCorrectPicks?: boolean;
   actualResults?: BracketData;
-  onMatchupClick?: (matchup: Matchup) => void;
+  onMatchupClick?: (matchup: Matchup, slot: "A" | "B") => void;
   highlightIncomplete?: boolean;
 }
 
@@ -583,7 +597,7 @@ interface FinalFourProps {
   readOnly?: boolean;
   highlightCorrectPicks?: boolean;
   actualResults?: BracketData;
-  onMatchupClick?: (matchup: Matchup) => void;
+  onMatchupClick?: (matchup: Matchup, slot: "A" | "B") => void;
   highlightIncomplete?: boolean;
 }
 
@@ -601,7 +615,7 @@ const FinalFour: React.FC<FinalFourProps> = ({
   const finalFourMatchups = bracketData[5];
   const championshipMatchup = bracketData[6][0];
 
-  // Check if matchups are incomplete (has both teams but no winner)
+  // Check if matchups are incomplete
   const isFinalFour1Incomplete =
     finalFourMatchups[0].teamA &&
     finalFourMatchups[0].teamB &&
@@ -639,57 +653,41 @@ const FinalFour: React.FC<FinalFourProps> = ({
     );
   };
 
-  // Create click handlers for Final Four and Championship matchups
-  const handleFinalFour1Click = () => {
-    if (
-      onMatchupClick &&
-      finalFourMatchups[0].teamA &&
-      finalFourMatchups[0].teamB
-    ) {
-      onMatchupClick(finalFourMatchups[0]);
+  // Determine if matchups should be clickable
+  const isFF1Clickable = onMatchupClick && finalFourMatchups[0];
+
+  const isFF2Clickable = onMatchupClick && finalFourMatchups[1];
+
+  const isChampClickable = onMatchupClick && championshipMatchup;
+
+  const handleFF1Click = (slot: "A" | "B") => {
+    if (isFF1Clickable) {
+      onMatchupClick(finalFourMatchups[0], slot);
     }
   };
 
-  const handleFinalFour2Click = () => {
-    if (
-      onMatchupClick &&
-      finalFourMatchups[1].teamA &&
-      finalFourMatchups[1].teamB
-    ) {
-      onMatchupClick(finalFourMatchups[1]);
+  const handleFF2Click = (slot: "A" | "B") => {
+    if (isFF2Clickable) {
+      onMatchupClick(finalFourMatchups[1], slot);
     }
   };
 
-  const handleChampionshipClick = () => {
-    if (
-      onMatchupClick &&
-      championshipMatchup.teamA &&
-      championshipMatchup.teamB
-    ) {
-      onMatchupClick(championshipMatchup);
+  const handleChampClick = (slot: "A" | "B") => {
+    if (isChampClickable) {
+      onMatchupClick(championshipMatchup, slot);
     }
   };
-
-  // Determine if matchups are clickable
-  const isFF1Clickable =
-    !!onMatchupClick &&
-    !!finalFourMatchups[0].teamA &&
-    !!finalFourMatchups[0].teamB;
-  const isFF2Clickable =
-    !!onMatchupClick &&
-    !!finalFourMatchups[1].teamA &&
-    !!finalFourMatchups[1].teamB;
-  const isChampClickable =
-    !!onMatchupClick &&
-    !!championshipMatchup.teamA &&
-    !!championshipMatchup.teamB;
 
   return (
     <div className="flex flex-col items-center mx-2">
       {/* Final Four Matchups */}
       <div className="flex justify-center w-full mb-3">
         <div className="w-32 mr-2">
-          <div className="relative">
+          <div
+            className={`relative ${
+              isFF1Clickable ? "cursor-pointer hover:bg-blue-50/30" : ""
+            }`}
+          >
             <TeamSlot
               team={finalFourMatchups[0].teamA}
               isWinner={Boolean(
@@ -716,9 +714,9 @@ const FinalFour: React.FC<FinalFourProps> = ({
                 finalFourMatchups[0].teamA
               )}
               onMatchupClick={
-                isFF1Clickable ? handleFinalFour1Click : undefined
+                isFF1Clickable ? () => handleFF1Click("A") : undefined
               }
-              isClickable={isFF1Clickable}
+              isClickable={!!isFF1Clickable}
             />
             <div className="h-1"></div>
             <TeamSlot
@@ -747,14 +745,18 @@ const FinalFour: React.FC<FinalFourProps> = ({
                 finalFourMatchups[0].teamB
               )}
               onMatchupClick={
-                isFF1Clickable ? handleFinalFour1Click : undefined
+                isFF1Clickable ? () => handleFF1Click("B") : undefined
               }
-              isClickable={isFF1Clickable}
+              isClickable={!!isFF1Clickable}
             />
           </div>
         </div>
         <div className="w-32 ml-2">
-          <div className="relative">
+          <div
+            className={`relative ${
+              isFF2Clickable ? "cursor-pointer hover:bg-blue-50/30" : ""
+            }`}
+          >
             <TeamSlot
               team={finalFourMatchups[1].teamA}
               isWinner={Boolean(
@@ -782,9 +784,9 @@ const FinalFour: React.FC<FinalFourProps> = ({
                 finalFourMatchups[1].teamA
               )}
               onMatchupClick={
-                isFF2Clickable ? handleFinalFour2Click : undefined
+                isFF2Clickable ? () => handleFF2Click("A") : undefined
               }
-              isClickable={isFF2Clickable}
+              isClickable={!!isFF2Clickable}
             />
             <div className="h-1"></div>
             <TeamSlot
@@ -814,22 +816,22 @@ const FinalFour: React.FC<FinalFourProps> = ({
                 finalFourMatchups[1].teamB
               )}
               onMatchupClick={
-                isFF2Clickable ? handleFinalFour2Click : undefined
+                isFF2Clickable ? () => handleFF2Click("B") : undefined
               }
-              isClickable={isFF2Clickable}
+              isClickable={!!isFF2Clickable}
             />
           </div>
         </div>
       </div>
+
+      {/* Championship */}
       <div className="flex justify-center items-start mb-3 w-full max-w-xs">
-        {/* Championship */}
         <div
           className={`border-2 rounded-lg p-1 w-full ${
             isChampionshipIncomplete && submitAttempted
               ? "border-red-500 bg-red-50 animate-pulse"
               : "border-yellow-500 bg-yellow-50"
-          } ${isChampClickable ? "cursor-pointer" : ""}`}
-          onClick={isChampClickable ? handleChampionshipClick : undefined}
+          } ${isChampClickable ? "cursor-pointer hover:bg-yellow-100" : ""}`}
         >
           <p className="text-center text-xs font-bold text-yellow-800 mb-0.5">
             Championship
@@ -862,9 +864,9 @@ const FinalFour: React.FC<FinalFourProps> = ({
                   championshipMatchup.teamA
                 )}
                 onMatchupClick={
-                  isChampClickable ? handleChampionshipClick : undefined
+                  isChampClickable ? () => handleChampClick("A") : undefined
                 }
-                isClickable={isChampClickable}
+                isClickable={!!isChampClickable}
               />
             </div>
             <div className="text-center font-bold text-xs">vs</div>
@@ -896,22 +898,25 @@ const FinalFour: React.FC<FinalFourProps> = ({
                   championshipMatchup.teamB
                 )}
                 onMatchupClick={
-                  isChampClickable ? handleChampionshipClick : undefined
+                  isChampClickable ? () => handleChampClick("B") : undefined
                 }
-                isClickable={isChampClickable}
+                isClickable={!!isChampClickable}
               />
             </div>
           </div>
 
-          {/* Champion Display */}
-          {championshipMatchup.winner && (
-            <div className="mt-2 pt-1 border-t border-yellow-400">
-              <p className="text-center text-xs font-bold text-yellow-800 mb-0.5">
-                CHAMPION
-              </p>
-              <div
-                className={`border rounded-md p-1 mx-auto ${
-                  isCorrectPick(championshipMatchup, championshipMatchup.winner)
+          {/* Champion Display - Always show this section */}
+          <div className="mt-2 pt-1 border-t border-yellow-400">
+            <p className="text-center text-xs font-bold text-yellow-800 mb-0.5">
+              CHAMPION
+            </p>
+            <div
+              className={`border rounded-md p-1 mx-auto ${
+                championshipMatchup.winner
+                  ? isCorrectPick(
+                      championshipMatchup,
+                      championshipMatchup.winner
+                    )
                     ? "bg-green-100 border-green-500"
                     : isIncorrectPick(
                         championshipMatchup,
@@ -919,19 +924,25 @@ const FinalFour: React.FC<FinalFourProps> = ({
                       )
                     ? "bg-red-50 border-red-300"
                     : "bg-yellow-50 border-yellow-400"
-                }`}
-              >
-                <div className="flex items-center justify-center">
-                  <span className="font-bold text-[10px] w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center mr-1">
-                    {championshipMatchup.winner.seed}
-                  </span>
-                  <span className="font-bold text-xs">
-                    {championshipMatchup.winner.name}
-                  </span>
-                </div>
+                  : "bg-gray-50 border-gray-200"
+              }`}
+            >
+              <div className="flex items-center justify-center min-h-7">
+                {championshipMatchup.winner ? (
+                  <>
+                    <span className="font-bold text-[10px] w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center mr-1">
+                      {championshipMatchup.winner.seed}
+                    </span>
+                    <span className="font-bold text-xs">
+                      {championshipMatchup.winner.name}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-gray-400 text-xs">Not Selected</span>
+                )}
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
@@ -946,11 +957,11 @@ interface PrintStyleCompactBracketProps {
   readOnly?: boolean;
   highlightCorrectPicks?: boolean;
   actualResults?: BracketData; // This now includes the teams property
-  onMatchupClick?: (matchup: Matchup) => void;
+  onMatchupClick?: (matchup: Matchup, slot: "A" | "B") => void;
   highlightIncomplete?: boolean;
 }
 
-// Add this debug logging at the start of the PrintStyleCompactBracket component
+// Main component
 const PrintStyleCompactBracket: React.FC<PrintStyleCompactBracketProps> = ({
   bracketData,
   onTeamSelect = () => {},

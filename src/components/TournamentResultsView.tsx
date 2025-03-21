@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 import PrintStyleCompactBracket from "../PrintStyleCompactBracket";
-import { BracketData } from "../types";
+import { BracketData, Matchup } from "../types";
+import MatchupStatsModal from "./MatchupStatsModal";
 
 const TournamentResultsView: React.FC = () => {
-  // Update the state type to include teams
+  // Existing state
   const [results, setResults] = useState<{
     results: BracketData;
     completedRounds: number[];
@@ -13,6 +14,13 @@ const TournamentResultsView: React.FC = () => {
   } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // State for matchup stats
+  const [selectedMatchupId, setSelectedMatchupId] = useState<number | null>(
+    null
+  );
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState<boolean>(false);
+  const [selectedSlot, setSelectedSlot] = useState<"A" | "B" | null>(null);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -30,6 +38,16 @@ const TournamentResultsView: React.FC = () => {
 
     fetchResults();
   }, []);
+
+  const handleMatchupClick = (matchup: Matchup, slot: "A" | "B") => {
+    // Allow clicks for all rounds >= 2 regardless of first round status
+    if (matchup.round >= 2) {
+      console.log(`Clicked matchup: ${matchup.id}, round: ${matchup.round}, slot: ${slot}`);
+      setSelectedMatchupId(matchup.id);
+      setSelectedSlot(slot);
+      setIsStatsModalOpen(true);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -102,12 +120,22 @@ const TournamentResultsView: React.FC = () => {
           )}
         </div>
 
+        <div className="p-3 bg-blue-50 border-l-4 border-blue-500 text-blue-700 rounded mb-4">
+          <p className="font-medium">Interactive Tournament Bracket</p>
+          <p>
+            Click on any matchup (2nd round through Championship) to see
+            statistics on how people picked that game.
+          </p>
+        </div>
+
         <div className="overflow-x-auto">
           <PrintStyleCompactBracket
             bracketData={results.results}
             readOnly={true}
             highlightCorrectPicks={true}
-            actualResults={results.results} // Same data used as bracket and actual results
+            actualResults={results.results}
+            onMatchupClick={handleMatchupClick}
+            highlightIncomplete={false}
           />
         </div>
       </div>
@@ -120,6 +148,14 @@ const TournamentResultsView: React.FC = () => {
           View Standings
         </Link>
       </div>
+
+      {/* Stats modal */}
+      <MatchupStatsModal
+        matchupId={selectedMatchupId}
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+        selectedSlot={selectedSlot}
+      />
     </div>
   );
 };
