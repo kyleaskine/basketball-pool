@@ -53,6 +53,8 @@ const AdminTournament: React.FC = () => {
   const [scoreTeamA, setScoreTeamA] = useState<string>('');
   const [scoreTeamB, setScoreTeamB] = useState<string>('');
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [isGeneratingGames, setIsGeneratingGames] = useState<boolean>(false);
+const [generateGamesError, setGenerateGamesError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTournamentResults();
@@ -350,6 +352,43 @@ const fetchTournamentResults = async () => {
     });
   };
 
+  // Add this function to your component
+const handleGenerateNextRound = async () => {
+  if (!window.confirm('Are you sure you want to generate games for the next round?')) {
+    return;
+  }
+
+  setIsGeneratingGames(true);
+  setGenerateGamesError(null);
+  setSuccessMessage(null);
+  
+  try {
+    const response = await api.post('/tournament/generate-next-round');
+    
+    setSuccessMessage(response.data.msg);
+    
+    // Refresh the tournament data
+    fetchTournamentResults();
+    
+    // Switch to the newly generated round
+    if (response.data.nextRound) {
+      setActiveRound(response.data.nextRound);
+    }
+    
+    // Auto-clear success message after 5 seconds
+    setTimeout(() => {
+      setSuccessMessage(null);
+    }, 5000);
+  } catch (err) {
+    console.error('Error generating next round games:', err);
+    setGenerateGamesError(
+      (err as any).response?.data?.msg || 'Failed to generate next round games'
+    );
+  } finally {
+    setIsGeneratingGames(false);
+  }
+};
+
   // Get games for the active round
   const gamesForActiveRound = results?.games?.filter(game => game.round === activeRound) || [];
 
@@ -438,14 +477,6 @@ const fetchTournamentResults = async () => {
               className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
             >
               View Brackets
-            </Link>
-            
-            <Link
-              to="/standings"
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              target="_blank"
-            >
-              View Public Standings
             </Link>
           </div>
 
@@ -536,7 +567,27 @@ const fetchTournamentResults = async () => {
               </div>
             </div>
           )}
-          
+          <div className="mb-6 p-4 bg-gray-100 rounded border border-gray-300">
+  <h2 className="text-lg font-bold mb-2">Generate Next Round</h2>
+  <p className="mb-4 text-sm text-gray-600">
+    After completing all games in the current round, use this button to generate 
+    the games for the next round.
+  </p>
+  
+  <button
+    onClick={handleGenerateNextRound}
+    disabled={isGeneratingGames}
+    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+  >
+    {isGeneratingGames ? 'Generating...' : 'Generate Next Round Games'}
+  </button>
+  
+  {generateGamesError && (
+    <div className="mt-2 p-2 bg-red-100 border border-red-400 text-red-700 rounded">
+      Error: {generateGamesError}
+    </div>
+  )}
+</div>
           {/* Round Selection Tabs */}
           {results && (
             <div className="mb-4">
