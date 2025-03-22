@@ -26,5 +26,5 @@ yarn-error.log*
 
 #created files
 package-lock.json
-public/output.css
+public/index.css
 .env
