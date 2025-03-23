@@ -6,6 +6,7 @@ import AdminUpdateForm from './AdminUpdateForm';
 import AdminUsers from './AdminUsers';
 import AdminBrackets from './AdminBrackets';
 import AdminTournament from './AdminTournament';
+import AdminNcaaMonitor from './AdminNcaaMonitor';
 
 const AdminDashboard: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -103,6 +104,14 @@ const AdminDashboard: React.FC = () => {
               </li>
               <li>
                 <Link 
+                  to="/admin/ncaa-monitor" 
+                  className="block py-2 px-4 rounded hover:bg-gray-700"
+                >
+                  NCAA Updates Monitor
+                </Link>
+              </li>
+              <li>
+                <Link 
                   to="/" 
                   className="block py-2 px-4 rounded hover:bg-gray-700"
                 >
@@ -124,6 +133,7 @@ const AdminDashboard: React.FC = () => {
             <Route path="/users/:userId/brackets" element={<AdminBrackets />} />
             <Route path="/brackets" element={<AdminBrackets />} />
             <Route path="/tournament" element={<AdminTournament />} />
+            <Route path="/ncaa-monitor" element={<AdminNcaaMonitor />} />
           </Routes>
         </div>
       </div>
@@ -179,6 +189,17 @@ const AdminOverview: React.FC = () => {
             className="text-red-600 hover:text-red-800 font-medium"
           >
             Manage Tournament →
+          </Link>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-amber-500">
+          <h2 className="text-lg font-bold mb-2">NCAA Updates Monitor</h2>
+          <p className="text-gray-600 mb-4">Monitor automated NCAA tournament updates.</p>
+          <Link 
+            to="/admin/ncaa-monitor" 
+            className="text-amber-600 hover:text-amber-800 font-medium"
+          >
+            View Monitor →
           </Link>
         </div>
       </div>

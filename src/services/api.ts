@@ -352,4 +352,93 @@ export const adminUpdateServices = {
   },
 };
 
+export interface UpdateLog {
+  _id: string;
+  runDate: string;
+  status: 'pending' | 'success' | 'error' | 'no_updates' | 'complete_for_day';
+  trackedGames: Array<{
+    gameId: string;
+    matchupId: number;
+    homeTeam: string;
+    awayTeam: string;
+    region: string;
+    round: string;
+    completed: boolean;
+    score: {
+      homeScore: number;
+      awayScore: number;
+    };
+    updatedInDb: boolean;
+  }>;
+  completedGames: number;
+  totalTrackedGames: number;
+  updatedCount: number;
+  allGamesComplete: boolean;
+  errors: Array<{
+    message: string;
+    stack?: string;
+    gameId?: string;
+  }>;
+  logs: string[];
+}
+
+export interface TodayStats {
+  success: boolean;
+  hasGames: boolean;
+  allComplete: boolean;
+  totalGames: number;
+  completedGames: number;
+  pendingGames: number;
+  lastUpdateTime: string;
+  completed: Array<{
+    gameId: string;
+    matchupId: number;
+    homeTeam: string;
+    awayTeam: string;
+    region: string;
+    round: string;
+    completed: boolean;
+    score: {
+      homeScore: number;
+      awayScore: number;
+    };
+    updatedInDb: boolean;
+  }>;
+  pending: Array<{
+    gameId: string;
+    matchupId: number;
+    homeTeam: string;
+    awayTeam: string;
+    region: string;
+    round: string;
+    completed: boolean;
+    score: {
+      homeScore: number;
+      awayScore: number;
+    };
+    updatedInDb: boolean;
+  }>;
+}
+
+export const ncaaUpdateServices = {
+  // Get today's tournament games status
+  getTodayGames: async (): Promise<TodayStats> => {
+    const response: AxiosResponse<TodayStats> = await api.get('/admin/tournament-today');
+    return response.data;
+  },
+  
+  // Get update logs
+  getLogs: async (limit = 20): Promise<UpdateLog[]> => {
+    const response: AxiosResponse<UpdateLog[]> = await api.get(`/admin/tournament-logs?limit=${limit}`);
+    return response.data;
+  },
+  
+  // Trigger manual update
+  triggerUpdate: async (): Promise<{success: boolean; message: string; result: any}> => {
+    const response: AxiosResponse<{success: boolean; message: string; result: any}> = 
+      await api.post('/admin/update-tournament');
+    return response.data;
+  }
+};
+
 export default api;
