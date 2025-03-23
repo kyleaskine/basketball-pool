@@ -374,7 +374,13 @@ export interface UpdateLog {
   totalTrackedGames: number;
   updatedCount: number;
   allGamesComplete: boolean;
-  errors: Array<{
+  // Add errorDetails field and keep errors for backward compatibility
+  errorDetails?: Array<{
+    message: string;
+    stack?: string;
+    gameId?: string;
+  }>;
+  errors?: Array<{
     message: string;
     stack?: string;
     gameId?: string;
