@@ -42,9 +42,14 @@ const isCorrectPickShared = (
 
     if (prevMatchups.length === 0) return false;
 
-    // Team must not be eliminated to be correct
+    // Get team info
     const teamInfo = actualResults.teams[team.name];
-    if (!teamInfo || teamInfo.eliminated) return false;
+    if (!teamInfo) return false;
+    
+    // For eliminated teams, only return false if they were eliminated before or during this round
+    if (teamInfo.eliminated && teamInfo.eliminationRound < matchup.round) {
+      return false;
+    }
 
     // Look for a matchup where this team won in the previous round
     return prevMatchups.some(

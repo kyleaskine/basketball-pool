@@ -352,40 +352,40 @@ export const adminUpdateServices = {
   },
 };
 
+// Types for the API responses
 export interface UpdateLog {
   _id: string;
   runDate: string;
-  status: 'pending' | 'success' | 'error' | 'no_updates' | 'complete_for_day';
-  trackedGames: Array<{
-    gameId: string;
-    matchupId: number;
-    homeTeam: string;
-    awayTeam: string;
-    region: string;
-    round: string;
-    completed: boolean;
-    score: {
-      homeScore: number;
-      awayScore: number;
-    };
-    updatedInDb: boolean;
-  }>;
+  status: string;
+  trackedGames: TrackedGame[];
+  logs: string[];
   completedGames: number;
   totalTrackedGames: number;
-  updatedCount: number;
+  updatedCount?: number;
   allGamesComplete: boolean;
-  // Add errorDetails field and keep errors for backward compatibility
-  errorDetails?: Array<{
-    message: string;
-    stack?: string;
-    gameId?: string;
-  }>;
-  errors?: Array<{
-    message: string;
-    stack?: string;
-    gameId?: string;
-  }>;
-  logs: string[];
+  errorDetails?: ErrorDetail[];
+  errors?: ErrorDetail[]; // For backward compatibility
+}
+
+export interface TrackedGame {
+  gameId: string;
+  matchupId: number;
+  homeTeam: string;
+  awayTeam: string;
+  region: string;
+  round: string;
+  completed: boolean;
+  score: {
+    homeScore: number;
+    awayScore: number;
+  };
+  updatedInDb: boolean;
+}
+
+export interface ErrorDetail {
+  message: string;
+  stack?: string;
+  gameId?: string;
 }
 
 export interface TodayStats {
@@ -396,53 +396,59 @@ export interface TodayStats {
   completedGames: number;
   pendingGames: number;
   lastUpdateTime: string;
-  completed: Array<{
-    gameId: string;
-    matchupId: number;
-    homeTeam: string;
-    awayTeam: string;
-    region: string;
-    round: string;
-    completed: boolean;
-    score: {
-      homeScore: number;
-      awayScore: number;
-    };
-    updatedInDb: boolean;
-  }>;
-  pending: Array<{
-    gameId: string;
-    matchupId: number;
-    homeTeam: string;
-    awayTeam: string;
-    region: string;
-    round: string;
-    completed: boolean;
-    score: {
-      homeScore: number;
-      awayScore: number;
-    };
-    updatedInDb: boolean;
-  }>;
+  dayDate: string;
+  completed: TrackedGame[];
+  pending: TrackedGame[];
 }
 
+export interface SchedulerStatus {
+  enabled: boolean;
+  nextRunTime: string | null;
+  autoDisabled: boolean;
+  disabledReason: string | null;
+}
+
+// API service for NCAA updates
 export const ncaaUpdateServices = {
-  // Get today's tournament games status
-  getTodayGames: async (): Promise<TodayStats> => {
-    const response: AxiosResponse<TodayStats> = await api.get('/admin/tournament-today');
+  // Get today's games
+  getTodayGames: async (showYesterday: boolean = false): Promise<TodayStats> => {
+    const response = await api.get('/admin/tournament-today', {
+      params: { yesterday: showYesterday }
+    });
     return response.data;
   },
-  
+
   // Get update logs
-  getLogs: async (limit = 20): Promise<UpdateLog[]> => {
-    const response: AxiosResponse<UpdateLog[]> = await api.get(`/admin/tournament-logs?limit=${limit}`);
+  getLogs: async (limit: number = 20): Promise<UpdateLog[]> => {
+    const response = await api.get('/admin/tournament-logs', {
+      params: { limit }
+    });
     return response.data;
   },
-  
-  // Trigger manual update
-  triggerUpdate: async (): Promise<{success: boolean; message: string; result: any}> => {
-    const response: AxiosResponse<{success: boolean; message: string; result: any}> = 
-      await api.post('/admin/update-tournament');
+
+  // Trigger an update
+  triggerUpdate: async (forceYesterday: boolean = false): Promise<any> => {
+    const response = await api.post('/admin/update-tournament', {}, {
+      params: { forceYesterday }
+    });
+    return response.data;
+  },
+
+  // Mark yesterday as complete
+  markYesterdayComplete: async (): Promise<any> => {
+    const response = await api.post('/admin/mark-yesterday-complete', {});
+    return response.data;
+  },
+
+  // Get scheduler status
+  getSchedulerStatus: async (): Promise<SchedulerStatus> => {
+    const response = await api.get('/admin/scheduler-status');
+    return response.data;
+  },
+
+  // Toggle scheduler on/off
+  toggleScheduler: async (enabled: boolean): Promise<SchedulerStatus> => {
+    const response = await api.post('/admin/toggle-scheduler', { enabled });
     return response.data;
   }
 };

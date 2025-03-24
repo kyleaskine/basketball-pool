@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { ncaaUpdateServices, UpdateLog, TodayStats } from "../../services/api";
+import { ncaaUpdateServices, UpdateLog, TodayStats, SchedulerStatus } from "../../services/api";
 
 const AdminNcaaMonitor: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"today" | "logs">("today");
+  const [activeTab, setActiveTab] = useState<"today" | "logs" | "settings">("today");
   const [todayStats, setTodayStats] = useState<TodayStats | null>(null);
   const [logs, setLogs] = useState<UpdateLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<UpdateLog | null>(null);
@@ -10,16 +10,26 @@ const AdminNcaaMonitor: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [showYesterday, setShowYesterday] = useState<boolean>(false);
+  const [isMarkingComplete, setIsMarkingComplete] = useState<boolean>(false);
+  const [schedulerStatus, setSchedulerStatus] = useState<SchedulerStatus>({
+    enabled: true,
+    nextRunTime: null,
+    autoDisabled: false,
+    disabledReason: null
+  });
+  const [isTogglingScheduler, setIsTogglingScheduler] = useState<boolean>(false);
 
   // Fetch initial data
   useEffect(() => {
     fetchData();
+    fetchSchedulerStatus();
 
     // Set up auto-refresh every 60 seconds
     const interval = setInterval(fetchData, 60000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [showYesterday]);
 
   // Fetch all data
   const fetchData = async () => {
@@ -35,13 +45,24 @@ const AdminNcaaMonitor: React.FC = () => {
     }
   };
 
+  // Fetch scheduler status
+  const fetchSchedulerStatus = async () => {
+    try {
+      const status = await ncaaUpdateServices.getSchedulerStatus();
+      setSchedulerStatus(status);
+    } catch (err) {
+      console.error("Error fetching scheduler status:", err);
+      // Don't set error since this is a background operation
+    }
+  };
+
   // Fetch today's game data
   const fetchTodayGames = async () => {
     try {
-      const data = await ncaaUpdateServices.getTodayGames();
+      const data = await ncaaUpdateServices.getTodayGames(showYesterday);
       setTodayStats(data);
     } catch (err) {
-      console.error("Error fetching today's games:", err);
+      console.error(`Error fetching ${showYesterday ? "yesterday's" : "today's"} games:`, err);
       throw err;
     }
   };
@@ -64,7 +85,7 @@ const AdminNcaaMonitor: React.FC = () => {
     setError(null);
 
     try {
-      const response = await ncaaUpdateServices.triggerUpdate();
+      const response = await ncaaUpdateServices.triggerUpdate(showYesterday);
 
       setSuccessMessage(
         `Update triggered successfully. Status: ${response.result.status}`
@@ -72,6 +93,7 @@ const AdminNcaaMonitor: React.FC = () => {
 
       // Refresh data after update
       await fetchData();
+      await fetchSchedulerStatus();
 
       // Auto-clear success message after 5 seconds
       setTimeout(() => {
@@ -82,6 +104,61 @@ const AdminNcaaMonitor: React.FC = () => {
       setError("Failed to trigger NCAA update. Please try again.");
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  // Mark yesterday as complete
+  const markYesterdayAsComplete = async () => {
+    setIsMarkingComplete(true);
+    setSuccessMessage(null);
+    setError(null);
+
+    try {
+      const response = await ncaaUpdateServices.markYesterdayComplete();
+
+      setSuccessMessage(
+        `Yesterday marked as complete. Status: ${response.result.status}`
+      );
+
+      // Refresh data after update
+      await fetchData();
+      await fetchSchedulerStatus();
+
+      // Auto-clear success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+    } catch (err) {
+      console.error("Error marking yesterday as complete:", err);
+      setError("Failed to mark yesterday as complete. Please try again.");
+    } finally {
+      setIsMarkingComplete(false);
+    }
+  };
+
+  // Toggle scheduler on/off
+  const toggleScheduler = async (enabled: boolean) => {
+    setIsTogglingScheduler(true);
+    setSuccessMessage(null);
+    setError(null);
+
+    try {
+      const response = await ncaaUpdateServices.toggleScheduler(enabled);
+
+      setSuccessMessage(
+        `Scheduler ${enabled ? "enabled" : "disabled"} successfully.`
+      );
+      setSchedulerStatus(response);
+
+      // Auto-clear success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 5000);
+    } catch (err) {
+      console.error("Error toggling scheduler:", err);
+      setError(`Failed to ${enabled ? "enable" : "disable"} scheduler. Please try again.`);
+    } finally {
+      setIsTogglingScheduler(false);
     }
   };
 
@@ -161,12 +238,95 @@ const AdminNcaaMonitor: React.FC = () => {
         </div>
       </div>
 
+      {/* Scheduler Status Banner */}
+      <div className={`mb-6 p-4 rounded-lg shadow-md ${schedulerStatus.enabled ? 'bg-green-50 border border-green-100' : 'bg-yellow-50 border border-yellow-100'}`}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-medium">
+              Scheduler Status: 
+              <span className={`ml-2 ${schedulerStatus.enabled ? 'text-green-600' : 'text-yellow-600'}`}>
+                {schedulerStatus.enabled ? 'Active' : 'Paused'}
+              </span>
+              {schedulerStatus.autoDisabled && (
+                <span className="ml-2 text-orange-500">(Auto-disabled)</span>
+              )}
+            </h3>
+            {schedulerStatus.disabledReason && (
+              <p className="text-sm text-gray-600 mt-1">{schedulerStatus.disabledReason}</p>
+            )}
+            {schedulerStatus.nextRunTime && (
+              <p className="text-sm text-gray-600 mt-1">Next run: {formatDate(schedulerStatus.nextRunTime)}</p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => toggleScheduler(true)}
+              disabled={isTogglingScheduler || schedulerStatus.enabled}
+              className={`px-3 py-1 rounded text-sm font-medium ${
+                schedulerStatus.enabled
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+              }`}
+            >
+              Enable
+            </button>
+            <button
+              onClick={() => toggleScheduler(false)}
+              disabled={isTogglingScheduler || !schedulerStatus.enabled}
+              className={`px-3 py-1 rounded text-sm font-medium ${
+                !schedulerStatus.enabled
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+              }`}
+            >
+              Disable
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Day Selection and Mark Complete Button */}
+      <div className="mb-6 flex justify-between items-center bg-white p-4 rounded-lg shadow-md">
+        <div className="flex items-center">
+          <span className="mr-3">Viewing:</span>
+          <div className="flex rounded-md shadow-sm">
+            <button
+              onClick={() => setShowYesterday(false)}
+              className={`relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
+                !showYesterday
+                  ? 'bg-blue-50 text-blue-700 border-blue-500 z-10'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Today's Games
+            </button>
+            <button
+              onClick={() => setShowYesterday(true)}
+              className={`relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${
+                showYesterday
+                  ? 'bg-blue-50 text-blue-700 border-blue-500 z-10'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Yesterday's Games
+            </button>
+          </div>
+        </div>
+        <button
+          onClick={markYesterdayAsComplete}
+          disabled={isMarkingComplete}
+          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:bg-gray-400"
+        >
+          {isMarkingComplete ? "Processing..." : "Mark Yesterday Complete"}
+        </button>
+      </div>
+
       {/* Stats Cards */}
       {todayStats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow-md p-4 border-t-4 border-blue-500">
             <div className="text-xs text-gray-500 uppercase tracking-wide">
-              Total Games Today
+              Total Games {showYesterday ? "Yesterday" : "Today"}
             </div>
             <div className="mt-1 text-2xl font-bold">
               {todayStats.totalGames || 0}
@@ -226,7 +386,7 @@ const AdminNcaaMonitor: React.FC = () => {
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
           >
-            Today's Games
+            {showYesterday ? "Yesterday's" : "Today's"} Games
           </button>
 
           <button
@@ -259,7 +419,7 @@ const AdminNcaaMonitor: React.FC = () => {
 
               {!todayStats?.hasGames ? (
                 <div className="p-6 text-center text-gray-500">
-                  No tournament games found for today.
+                  No tournament games found for {showYesterday ? "yesterday" : "today"}.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -481,7 +641,7 @@ const AdminNcaaMonitor: React.FC = () => {
                         </div>
                       ))}
 
-                      {/* Change errors to errorDetails here */}
+                      {/* Handle both errorDetails and legacy errors */}
                       {selectedLog.errorDetails &&
                       selectedLog.errorDetails.length > 0 ? (
                         <div className="mt-4 border-t border-gray-700 pt-4 text-red-400">
@@ -499,7 +659,6 @@ const AdminNcaaMonitor: React.FC = () => {
                         </div>
                       ) : selectedLog.errors &&
                         selectedLog.errors.length > 0 ? (
-                        // Fallback for compatibility with existing logs that might still have errors field
                         <div className="mt-4 border-t border-gray-700 pt-4 text-red-400">
                           <div className="font-bold mb-2">ERRORS:</div>
                           {selectedLog.errors.map((error, index) => (
