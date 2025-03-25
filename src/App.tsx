@@ -22,6 +22,7 @@ import Footer from "./components/Footer";
 import { authServices } from "./services/api";
 import TournamentResultsView from "./components/TournamentResultsView";
 import PrizesPage from "./components/PrizesPage";
+import TournamentAnalysisPage from "./components/TournamentAnalysisPage";
 
 // Route guard for Admin Routes
 const AdminRoute = ({ children }: { children: React.ReactElement }) => {
@@ -166,6 +167,10 @@ function App() {
             <Route path="/success" element={<SuccessPage />} />
             <Route path="/prizes" element={<PrizesPage />} />
             <Route path="/standings" element={<StandingsPage />} />
+            <Route
+              path="/tournament/analysis"
+              element={<TournamentAnalysisPage />}
+            />
 
             {/* Admin routes */}
             <Route

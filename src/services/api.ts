@@ -453,4 +453,82 @@ export const ncaaUpdateServices = {
   }
 };
 
+// Tournament possibilities analysis types
+export interface AnalysisTeam {
+  name: string;
+  seed: number;
+}
+
+export interface BracketContender {
+  id: string;
+  participantName: string;
+  entryNumber: number;
+  currentScore: number;
+  winPercentage?: number;
+  maxScore?: number;
+  minScore?: number;
+  placePercentages?: {
+    1: number;
+    2: number;
+    3: number;
+    podium: number;
+  };
+}
+
+export interface OutcomeCount {
+  key: string;
+  count: number;
+  percentage: number;
+}
+
+export interface ChampionshipPick {
+  team: string;
+  count: number;
+  percentage: number;
+}
+
+export interface TournamentAnalysis {
+  timestamp: string;
+  totalBrackets: number;
+  totalPossibleOutcomes: number;
+  roundName: string;
+  currentRound: number;
+  topContenders: BracketContender[];
+  podiumContenders: BracketContender[];
+  highestCeilings: BracketContender[];
+  mostVolatile: BracketContender[];
+  cinderellaTeams: AnalysisTeam[];
+  championshipPicks: ChampionshipPick[];
+  bracketOutcomes: {
+    sweet16: OutcomeCount[];
+    finalFour: OutcomeCount[];
+    championship: OutcomeCount[];
+  };
+}
+
+// Tournament possibilities service
+export const tournamentPossibilitiesServices = {
+  // Get tournament possibilities analysis
+  getAnalysis: async (): Promise<TournamentAnalysis> => {
+    const response: AxiosResponse<TournamentAnalysis> = await api.get('/tournament/possibilities');
+    return response.data;
+  },
+  
+  // Admin: Generate fresh tournament possibilities analysis
+  generateFreshAnalysis: async (): Promise<{
+    success: boolean;
+    message: string;
+    timestamp: string;
+    analysisData: TournamentAnalysis;
+  }> => {
+    const response: AxiosResponse<{
+      success: boolean;
+      message: string;
+      timestamp: string;
+      analysisData: TournamentAnalysis;
+    }> = await api.post('/tournament/possibilities/generate');
+    return response.data;
+  }
+};
+
 export default api;

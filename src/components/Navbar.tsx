@@ -89,6 +89,12 @@ const Navbar: React.FC = () => {
                 Standings
               </Link>
               <Link
+                to="/tournament/analysis"
+                className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Tournament Analysis
+              </Link>
+              <Link
                 to="/tournament/results"
                 className="text-gray-300 hover:bg-blue-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
               >
@@ -207,6 +213,13 @@ const Navbar: React.FC = () => {
             onClick={() => setIsMenuOpen(false)}
           >
             Standings
+          </Link>
+          <Link
+            to="/tournament/analysis"
+            className="text-gray-300 hover:bg-blue-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Tournament Analysis
           </Link>
           <Link
             to="/tournament/results"
