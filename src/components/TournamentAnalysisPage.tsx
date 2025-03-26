@@ -2,16 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 
-// Types for the analysis data based on the schema
-interface TopContender {
-  id: string;
-  participantName: string;
-  entryNumber: number;
-  currentScore: number;
-  winPercentage: number;
-  maxScore: number;
-  minPlace: number;
-  maxPlace: number;
+// Types for the analysis data based on the updated schema
+interface Team {
+  name: string;
+  seed: number;
 }
 
 interface PodiumContender {
@@ -29,32 +23,6 @@ interface PodiumContender {
   maxPlace: number;
 }
 
-interface HighestCeiling {
-  id: string;
-  participantName: string;
-  entryNumber: number;
-  currentScore: number;
-  maxScore: number;
-  minPlace: number;
-  maxPlace: number;
-}
-
-interface VolatileBracket {
-  id: string;
-  participantName: string;
-  entryNumber: number;
-  currentScore: number;
-  minScore: number;
-  maxScore: number;
-  minPlace: number;
-  maxPlace: number;
-}
-
-interface CinderellaTeam {
-  name: string;
-  seed: number;
-}
-
 interface ChampionshipPick {
   team: string;
   count: number;
@@ -67,6 +35,78 @@ interface BracketOutcome {
   percentage: number;
 }
 
+interface RareCorrectPick {
+  matchupId: number;
+  round: number;
+  winner: {
+    name: string;
+    seed: number;
+  };
+  correctPicks: number;
+  totalPicks: number;
+  percentage: number;
+  region: string;
+  teams: {
+    teamA: {
+      name: string;
+      seed: number;
+    };
+    teamB: {
+      name: string;
+      seed: number;
+    };
+  };
+}
+
+interface BracketImpact {
+  bracketId: string;
+  participantName: string;
+  entryNumber: number;
+  currentScore: number;
+  normalPodiumChance: number;
+  affectedPodiumChance: number;
+}
+
+interface OutcomeResult {
+  winner: {
+    name: string;
+    seed: number;
+  };
+  bracketImpacts: BracketImpact[];
+}
+
+interface ChampionshipScenario {
+  matchup: {
+    teamA: {
+      name: string;
+      seed: number;
+    };
+    teamB: {
+      name: string;
+      seed: number;
+    };
+  };
+  outcomes: OutcomeResult[];
+}
+
+interface PathAnalysis {
+  teamPaths: Record<string, {
+    seed: number;
+    winsChampionship: {
+      affectedBrackets: any[];
+      podiumChanges: {
+        bracketId: string;
+        participantName: string;
+        entryNumber: number;
+        currentScore: number;
+        normalPodiumChance: number;
+        adjustedPodiumChance: number;
+      }[];
+    };
+  }>;
+  championshipScenarios: ChampionshipScenario[];
+}
+
 interface TournamentAnalysisData {
   timestamp: string;
   stage: string;
@@ -74,12 +114,12 @@ interface TournamentAnalysisData {
   totalPossibleOutcomes: number;
   roundName: string;
   currentRound: number;
-  topContenders: TopContender[];
   podiumContenders: PodiumContender[];
-  highestCeilings: HighestCeiling[];
-  mostVolatile: VolatileBracket[];
-  cinderellaTeams: CinderellaTeam[];
+  playersWithNoPodiumChance: number;
+  playersWithWinChance: number;
   championshipPicks: ChampionshipPick[];
+  rareCorrectPicks: RareCorrectPick[];
+  pathAnalysis: PathAnalysis;
   bracketOutcomes: {
     sweet16: BracketOutcome[];
     finalFour: BracketOutcome[];
@@ -91,12 +131,15 @@ const TournamentAnalysisPage: React.FC = () => {
   const [analysisData, setAnalysisData] = useState<TournamentAnalysisData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('topContenders');
+  const [activeTab, setActiveTab] = useState<string>('podiumContenders');
+  const [sortField, setSortField] = useState<string>('podium');
+  const [sortDirection, setSortDirection] = useState<string>('desc');
 
   useEffect(() => {
     const fetchAnalysisData = async () => {
       setIsLoading(true);
       try {
+        console.log("Fetching initial tournament analysis data");
         const response = await api.get('/tournament/possibilities');
         setAnalysisData(response.data);
         setError(null);
@@ -110,6 +153,86 @@ const TournamentAnalysisPage: React.FC = () => {
 
     fetchAnalysisData();
   }, []);
+  
+  // Additional effect to fetch path analysis data for both path-related tabs
+  useEffect(() => {
+    // Check if we're on either of the path analysis tabs
+    const isPathAnalysisTab = (activeTab === 'teamPaths' || activeTab === 'championshipScenarios');
+    
+    if (isPathAnalysisTab && !isLoading) {
+      console.log(`Fetching path data for tab: ${activeTab}`);
+      
+      const fetchPathAnalysis = async () => {
+        try {
+          const response = await api.get('/tournament/path-analysis');
+          console.log("Path analysis API response received");
+          
+          if (response.data && response.data.pathAnalysis) {
+            // Log detailed info about the received data
+            const teamCount = response.data.pathAnalysis.teamPaths ? 
+              Object.keys(response.data.pathAnalysis.teamPaths).length : 0;
+            
+            console.log(`Received data for ${teamCount} teams`);
+            
+            if (teamCount > 0) {
+              const teamsWithImpacts = Object.entries(response.data.pathAnalysis.teamPaths)
+                .filter(([_, pathData]) => {
+                  const typedPathData = pathData as {
+                    winsChampionship?: {
+                      podiumChanges?: { length: number };
+                    };
+                  };
+                  return (
+                    typedPathData.winsChampionship &&
+                    typedPathData.winsChampionship.podiumChanges &&
+                    typedPathData.winsChampionship.podiumChanges.length > 0
+                  );
+                });
+              console.log(`Teams with podium impacts: ${teamsWithImpacts.length}`);
+              console.log(`Teams: ${teamsWithImpacts.map(t => t[0]).join(', ')}`);
+            }
+            
+            // Update the analysis data
+            setAnalysisData(prevData => {
+              if (!prevData) return null;
+              return {
+                ...prevData,
+                pathAnalysis: response.data.pathAnalysis
+              };
+            });
+          } else {
+            console.log("Response didn't contain expected path analysis data structure");
+          }
+        } catch (err) {
+          console.error('Error fetching path analysis data:', err);
+        }
+      };
+      
+      fetchPathAnalysis();
+    }
+  }, [activeTab, isLoading]);
+
+  // Additional effect to fetch sorted podium contenders when sort changes
+  useEffect(() => {
+    if (activeTab === 'podiumContenders' && !isLoading && !error) {
+      const fetchSortedContenders = async () => {
+        try {
+          const response = await api.get(`/tournament/podium-contenders?sort=${sortField}&dir=${sortDirection}`);
+          if (analysisData) {
+            setAnalysisData({
+              ...analysisData,
+              podiumContenders: response.data.podiumContenders,
+              playersWithNoPodiumChance: response.data.playersWithNoPodiumChance
+            });
+          }
+        } catch (err) {
+          console.error('Error fetching sorted podium contenders:', err);
+        }
+      };
+      
+      fetchSortedContenders();
+    }
+  }, [activeTab, sortField, sortDirection]);
 
   // Format a date from ISO string
   const formatDate = (dateString: string) => {
@@ -142,6 +265,33 @@ const TournamentAnalysisPage: React.FC = () => {
       return 'rd';
     }
     return 'th';
+  };
+
+  // Handle sort change for podium contenders
+  const handleSortChange = (field: string) => {
+    if (field === sortField) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc'); // Default to descending for new field
+    }
+  };
+
+  // Format percentage with one decimal place
+  const formatPercentage = (value: number): string => {
+    return value.toFixed(1) + '%';
+  };
+
+  // Calculate impact color based on change percentage
+  const getImpactColor = (normal: number, affected: number): string => {
+    const change = affected - normal;
+    if (change > 20) return 'text-green-600';
+    if (change > 10) return 'text-green-500';
+    if (change > 5) return 'text-green-400';
+    if (change < -20) return 'text-red-600';
+    if (change < -10) return 'text-red-500';
+    if (change < -5) return 'text-red-400';
+    return 'text-gray-500';
   };
 
   if (isLoading) {
@@ -212,9 +362,9 @@ const TournamentAnalysisPage: React.FC = () => {
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-purple-500">
-          <h2 className="text-lg font-bold text-gray-700 mb-2">Cinderella Teams</h2>
-          <div className="text-sm text-gray-600">Underdogs Still Active</div>
-          <div className="text-3xl font-bold text-purple-800">{analysisData.cinderellaTeams.length}</div>
+          <h2 className="text-lg font-bold text-gray-700 mb-2">Win Contenders</h2>
+          <div className="text-sm text-gray-600">Players With Win Chance</div>
+          <div className="text-3xl font-bold text-purple-800">{analysisData.playersWithWinChance}</div>
         </div>
       </div>
 
@@ -222,40 +372,34 @@ const TournamentAnalysisPage: React.FC = () => {
       <div className="border-b border-gray-200 mb-6">
         <nav className="flex flex-wrap -mb-px">
           <button
-            onClick={() => setActiveTab('topContenders')}
-            className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${activeTab === 'topContenders' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-          >
-            Top Contenders
-          </button>
-          <button
             onClick={() => setActiveTab('podiumContenders')}
             className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${activeTab === 'podiumContenders' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
           >
             Podium Chances
           </button>
           <button
-            onClick={() => setActiveTab('highestCeilings')}
-            className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${activeTab === 'highestCeilings' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+            onClick={() => setActiveTab('rareCorrectPicks')}
+            className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${activeTab === 'rareCorrectPicks' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
           >
-            Highest Ceilings
+            Rare Correct Picks
           </button>
           <button
-            onClick={() => setActiveTab('mostVolatile')}
-            className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${activeTab === 'mostVolatile' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+            onClick={() => setActiveTab('teamPaths')}
+            className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${activeTab === 'teamPaths' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
           >
-            Most Volatile
+            Team Championship Paths
+          </button>
+          <button
+            onClick={() => setActiveTab('championshipScenarios')}
+            className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${activeTab === 'championshipScenarios' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+          >
+            Championship Scenarios
           </button>
           <button
             onClick={() => setActiveTab('championshipPicks')}
             className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${activeTab === 'championshipPicks' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
           >
             Championship Picks
-          </button>
-          <button
-            onClick={() => setActiveTab('cinderellaTeams')}
-            className={`py-2 px-4 text-center border-b-2 font-medium text-sm ${activeTab === 'cinderellaTeams' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-          >
-            Cinderella Teams
           </button>
           <button
             onClick={() => setActiveTab('bracketOutcomes')}
@@ -268,113 +412,35 @@ const TournamentAnalysisPage: React.FC = () => {
 
       {/* Tab Content */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-        {/* Top Contenders Tab */}
-        {activeTab === 'topContenders' && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Top Contenders</h2>
-            <p className="text-gray-600 mb-4">Brackets with the highest chances of winning the pool.</p>
-            
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead>
-                  <tr>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participant</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Score</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Max Score</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Win Chance</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Possible Places</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {analysisData.topContenders.map((contender, index) => (
-                    <tr key={`${contender.id}-${contender.entryNumber}`} className={index < 3 ? "bg-yellow-50" : ""}>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {index + 1}
-                          {index === 0 && <span className="ml-1 text-yellow-500">🏆</span>}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {contender.participantName}
-                          {contender.entryNumber > 1 && (
-                            <span className="text-xs text-gray-500 ml-1">
-                              (#{contender.entryNumber})
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {contender.currentScore}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {contender.maxScore}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
-                          <div 
-                            className="bg-blue-600 h-2.5 rounded-full" 
-                            style={{ width: getPercentageWidth(contender.winPercentage) }}
-                          ></div>
-                        </div>
-                        <div className="text-xs font-medium text-gray-900">
-                          {contender.winPercentage.toFixed(1)}%
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium">
-                          {contender.minPlace === contender.maxPlace 
-                            ? `${contender.minPlace}${getOrdinalSuffix(contender.minPlace)}` 
-                            : `${contender.minPlace}${getOrdinalSuffix(contender.minPlace)} - ${contender.maxPlace}${getOrdinalSuffix(contender.maxPlace)}`}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium">
-                          {contender.minPlace === contender.maxPlace 
-                            ? `${contender.minPlace}${getOrdinalSuffix(contender.minPlace)}` 
-                            : `${contender.minPlace}${getOrdinalSuffix(contender.minPlace)} - ${contender.maxPlace}${getOrdinalSuffix(contender.maxPlace)}`}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <Link 
-                          to={`/bracket/view/${contender.id}`} 
-                          className="text-blue-600 hover:text-blue-900"
-                          target="_blank"
-                        >
-                          View Bracket
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
         {/* Podium Contenders Tab */}
         {activeTab === 'podiumContenders' && (
           <div>
             <h2 className="text-xl font-bold text-gray-800 mb-4">Podium Contenders</h2>
-            <p className="text-gray-600 mb-4">Brackets with the highest chances of finishing in the top 3.</p>
+            <p className="text-gray-600 mb-4">Brackets with chances of finishing in the top 3.</p>
             
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white">
                 <thead>
                   <tr>
                     <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participant</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Score</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">1st Place %</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">2nd Place %</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">3rd Place %</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Podium %</th>
+                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => handleSortChange('name')}>
+                      Participant {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => handleSortChange('score')}>
+                      Score {sortField === 'score' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => handleSortChange('first')}>
+                      1st Place % {sortField === 'first' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => handleSortChange('second')}>
+                      2nd Place % {sortField === 'second' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => handleSortChange('third')}>
+                      3rd Place % {sortField === 'third' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer" onClick={() => handleSortChange('podium')}>
+                      Podium % {sortField === 'podium' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    </th>
                     <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Possible Places</th>
                     <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
@@ -445,6 +511,13 @@ const TournamentAnalysisPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="text-sm font-medium">
+                          {contender.minPlace === contender.maxPlace 
+                            ? `${contender.minPlace}${getOrdinalSuffix(contender.minPlace)}` 
+                            : `${contender.minPlace}${getOrdinalSuffix(contender.minPlace)} - ${contender.maxPlace}${getOrdinalSuffix(contender.maxPlace)}`}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 whitespace-nowrap">
                         <Link 
                           to={`/bracket/view/${contender.id}`} 
                           className="text-blue-600 hover:text-blue-900"
@@ -456,162 +529,182 @@ const TournamentAnalysisPage: React.FC = () => {
                     </tr>
                   ))}
                 </tbody>
+                <tfoot>
+                  <tr className="bg-gray-50">
+                    <td colSpan={9} className="py-3 px-4 text-sm text-gray-500">
+                      {analysisData.playersWithNoPodiumChance > 0 && (
+                        <div className="font-medium">
+                          {analysisData.playersWithNoPodiumChance} player{analysisData.playersWithNoPodiumChance !== 1 ? 's' : ''} with no chance of making the podium
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
         )}
 
-        {/* Highest Ceilings Tab */}
-        {activeTab === 'highestCeilings' && (
+        {/* Rare Correct Picks Tab */}
+        {activeTab === 'rareCorrectPicks' && (
           <div>
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Highest Ceiling Brackets</h2>
-            <p className="text-gray-600 mb-4">Brackets with the highest maximum possible scores.</p>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Rare Correct Picks</h2>
+            <p className="text-gray-600 mb-4">Games where few brackets picked the correct winner.</p>
             
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead>
-                  <tr>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participant</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Score</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Max Possible Score</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points to Gain</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Possible Places</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {analysisData.highestCeilings.map((bracket, index) => (
-                    <tr key={`${bracket.id}-${bracket.entryNumber}`} className={index < 3 ? "bg-green-50" : ""}>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{index + 1}</div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {bracket.participantName}
-                          {bracket.entryNumber > 1 && (
-                            <span className="text-xs text-gray-500 ml-1">
-                              (#{bracket.entryNumber})
-                            </span>
-                          )}
+            {analysisData.rareCorrectPicks && analysisData.rareCorrectPicks.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {analysisData.rareCorrectPicks.map((pick) => (
+                  <div key={pick.matchupId} className="bg-white border border-blue-100 rounded-lg shadow-sm overflow-hidden">
+                    <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
+                      <div className="text-sm text-blue-800 font-medium">
+                        Round {pick.round} • {pick.region} Region
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <div className="bg-gray-100 text-gray-800 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                            {pick.teams.teamA.seed}
+                          </div>
+                          <div className="text-gray-700">{pick.teams.teamA.name}</div>
                         </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {bracket.currentScore}
+                        <div className="text-gray-400">vs</div>
+                        <div className="flex items-center space-x-2">
+                          <div className="bg-gray-100 text-gray-800 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                            {pick.teams.teamB.seed}
+                          </div>
+                          <div className="text-gray-700">{pick.teams.teamB.name}</div>
                         </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-bold text-green-600">
-                          {bracket.maxScore}
+                      </div>
+                      
+                      <div className="bg-green-50 p-3 rounded-lg mb-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center space-x-2">
+                            <div className="bg-green-100 text-green-800 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                              {pick.winner.seed}
+                            </div>
+                            <div className="text-green-800 font-medium">{pick.winner.name}</div>
+                          </div>
+                          <div className="text-green-800 font-medium">Winner</div>
                         </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-blue-600">
-                          +{bracket.maxScore - bracket.currentScore}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium">
-                          {bracket.minPlace === bracket.maxPlace 
-                            ? `${bracket.minPlace}${getOrdinalSuffix(bracket.minPlace)}` 
-                            : `${bracket.minPlace}${getOrdinalSuffix(bracket.minPlace)} - ${bracket.maxPlace}${getOrdinalSuffix(bracket.maxPlace)}`}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium">
-                          {bracket.minPlace === bracket.maxPlace 
-                            ? `${bracket.minPlace}${getOrdinalSuffix(bracket.minPlace)}` 
-                            : `${bracket.minPlace}${getOrdinalSuffix(bracket.minPlace)} - ${bracket.maxPlace}${getOrdinalSuffix(bracket.maxPlace)}`}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <Link 
-                          to={`/bracket/view/${bracket.id}`} 
-                          className="text-blue-600 hover:text-blue-900"
-                          target="_blank"
-                        >
-                          View Bracket
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                      
+                      <div className="text-sm text-gray-500 mb-1">Correctly picked by:</div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                        <div 
+                          className="bg-blue-600 h-2.5 rounded-full" 
+                          style={{ width: getPercentageWidth(pick.percentage) }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-600">
+                        <div>{pick.correctPicks} of {pick.totalPicks} brackets</div>
+                        <div className="font-medium text-blue-700">{pick.percentage.toFixed(1)}%</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-100 p-6 rounded-lg text-center">
+                <p className="text-gray-600">No rare correct picks found in the current tournament stage.</p>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Most Volatile Tab */}
-        {activeTab === 'mostVolatile' && (
+        {/* Path Analysis Tab */}
+        {activeTab === 'pathAnalysis' && (
           <div>
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Most Volatile Brackets</h2>
-            <p className="text-gray-600 mb-4">Brackets with the widest range of possible outcomes.</p>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Path Analysis</h2>
+            <p className="text-gray-600 mb-4">How specific tournament outcomes affect bracket chances.</p>
             
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead>
-                  <tr>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participant</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Score</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Min Score</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Max Score</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Range</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Possible Places</th>
-                    <th className="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {analysisData.mostVolatile.map((bracket, index) => (
-                    <tr key={`${bracket.id}-${bracket.entryNumber}`} className={index < 3 ? "bg-purple-50" : ""}>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{index + 1}</div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {bracket.participantName}
-                          {bracket.entryNumber > 1 && (
-                            <span className="text-xs text-gray-500 ml-1">
-                              (#{bracket.entryNumber})
-                            </span>
+            {analysisData.pathAnalysis && analysisData.pathAnalysis.championshipScenarios && 
+     Array.isArray(analysisData.pathAnalysis.championshipScenarios) && 
+     analysisData.pathAnalysis.championshipScenarios.length > 0 ? (
+              <div className="space-y-8">
+                {analysisData.pathAnalysis.championshipScenarios.map((scenario, scenarioIndex) => (
+                  <div key={scenarioIndex} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
+                      <h3 className="text-lg font-semibold text-blue-800">
+                        Championship Scenario: {scenario.matchup.teamA.name} vs {scenario.matchup.teamB.name}
+                      </h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+                      {scenario.outcomes.map((outcome, outcomeIndex) => (
+                        <div key={outcomeIndex} className="p-4">
+                          <div className="flex items-center mb-4">
+                            <div className="bg-green-100 text-green-800 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center mr-2">
+                              {outcome.winner.seed}
+                            </div>
+                            <div className="text-lg font-medium text-green-800">
+                              {outcome.winner.name} Wins Championship
+                            </div>
+                          </div>
+                          
+                          <div className="text-sm text-gray-600 mb-2">Top bracket impacts:</div>
+                          
+                          <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                              <thead>
+                                <tr>
+                                  <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bracket</th>
+                                  <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Normal Chance</th>
+                                  <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">If {outcome.winner.name} Wins</th>
+                                  <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                                </tr>
+                              </thead>
+                              <tbody className="bg-white divide-y divide-gray-200">
+                                {outcome.bracketImpacts.slice(0, 5).map((impact, impactIndex) => (
+                                  <tr key={impactIndex}>
+                                    <td className="px-2 py-2 whitespace-nowrap">
+                                      <div className="text-sm font-medium text-gray-900">
+                                        {impact.participantName}
+                                        {impact.entryNumber > 1 && (
+                                          <span className="text-xs text-gray-500 ml-1">
+                                            (#{impact.entryNumber})
+                                          </span>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="px-2 py-2 whitespace-nowrap">
+                                      <div className="text-sm text-gray-500">
+                                        {formatPercentage(impact.normalPodiumChance)}
+                                      </div>
+                                    </td>
+                                    <td className="px-2 py-2 whitespace-nowrap">
+                                      <div className="text-sm font-medium">
+                                        {formatPercentage(impact.affectedPodiumChance)}
+                                      </div>
+                                    </td>
+                                    <td className="px-2 py-2 whitespace-nowrap">
+                                      <div className={`text-sm font-medium ${getImpactColor(impact.normalPodiumChance, impact.affectedPodiumChance)}`}>
+                                        {impact.affectedPodiumChance > impact.normalPodiumChance ? '+' : ''}
+                                        {formatPercentage(impact.affectedPodiumChance - impact.normalPodiumChance)}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          
+                          {outcome.bracketImpacts.length > 5 && (
+                            <div className="mt-2 text-sm text-gray-500 text-right">
+                              Showing top 5 of {outcome.bracketImpacts.length} affected brackets
+                            </div>
                           )}
                         </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {bracket.currentScore}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-red-600">
-                          {bracket.minScore}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-green-600">
-                          {bracket.maxScore}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-sm font-bold text-purple-600">
-                          {bracket.maxScore - bracket.minScore}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 whitespace-nowrap">
-                        <Link 
-                          to={`/bracket/view/${bracket.id}`} 
-                          className="text-blue-600 hover:text-blue-900"
-                          target="_blank"
-                        >
-                          View Bracket
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-100 p-6 rounded-lg text-center">
+                <p className="text-gray-600">No path analysis is available for the current tournament stage.</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -663,41 +756,6 @@ const TournamentAnalysisPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
-
-        {/* Cinderella Teams Tab */}
-        {activeTab === 'cinderellaTeams' && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Cinderella Teams</h2>
-            <p className="text-gray-600 mb-4">Underdog teams (seed 5 or higher) still alive in the tournament.</p>
-            
-            {analysisData.cinderellaTeams.length === 0 ? (
-              <div className="bg-gray-100 p-6 rounded-lg text-center">
-                <p className="text-gray-600">No cinderella teams found in the current tournament stage.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {analysisData.cinderellaTeams.map(team => (
-                  <div key={team.name} className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                    <div className="flex items-center">
-                      <div className="flex items-center justify-center bg-purple-100 text-purple-800 text-xl font-bold rounded-full w-12 h-12 mr-3">
-                        {team.seed}
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-purple-800">{team.name}</div>
-                        <div className="text-sm text-gray-600">
-                          {team.seed === 16 ? "Biggest" : 
-                           team.seed >= 13 ? "Major" : 
-                           team.seed >= 10 ? "Significant" : 
-                           "Minor"} Upset
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
