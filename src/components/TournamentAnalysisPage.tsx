@@ -612,101 +612,208 @@ const TournamentAnalysisPage: React.FC = () => {
           </div>
         )}
 
-        {/* Path Analysis Tab */}
-        {activeTab === 'pathAnalysis' && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Path Analysis</h2>
-            <p className="text-gray-600 mb-4">How specific tournament outcomes affect bracket chances.</p>
-            
-            {analysisData.pathAnalysis && analysisData.pathAnalysis.championshipScenarios && 
+        {/* Team Championship Paths Tab */}
+{activeTab === 'teamPaths' && (
+  <div>
+    <h2 className="text-xl font-bold text-gray-800 mb-4">Team Championship Paths</h2>
+    <p className="text-gray-600 mb-4">How specific teams winning affects bracket chances.</p>
+    
+    {analysisData.pathAnalysis && analysisData.pathAnalysis.teamPaths && 
+     Object.keys(analysisData.pathAnalysis.teamPaths).length > 0 ? (
+      <div className="space-y-8">
+        {Object.entries(analysisData.pathAnalysis.teamPaths).map(([teamName, pathData], index) => {
+          const typedPathData = pathData as {
+            seed: number;
+            winsChampionship: {
+              podiumChanges: Array<{
+                bracketId: string;
+                participantName: string;
+                entryNumber: number;
+                currentScore: number;
+                normalPodiumChance: number;
+                adjustedPodiumChance: number;
+              }>;
+            };
+          };
+          
+          if (!typedPathData.winsChampionship || 
+              !typedPathData.winsChampionship.podiumChanges || 
+              typedPathData.winsChampionship.podiumChanges.length === 0) {
+            return null;
+          }
+          
+          return (
+            <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
+                <h3 className="flex items-center text-lg font-semibold text-blue-800">
+                  <div className="bg-blue-200 text-blue-800 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center mr-2">
+                    {typedPathData.seed}
+                  </div>
+                  {teamName} Wins Championship
+                </h3>
+              </div>
+              
+              <div className="p-4">
+                <div className="text-sm text-gray-600 mb-2">Top bracket impacts:</div>
+                
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead>
+                      <tr>
+                        <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bracket</th>
+                        <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Normal Podium Chance</th>
+                        <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">If {teamName} Wins</th>
+                        <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {typedPathData.winsChampionship.podiumChanges.slice(0, 5).map((impact, impactIndex) => (
+                        <tr key={impactIndex}>
+                          <td className="px-2 py-2 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {impact.participantName}
+                              {impact.entryNumber > 1 && (
+                                <span className="text-xs text-gray-500 ml-1">
+                                  (#{impact.entryNumber})
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-2 py-2 whitespace-nowrap">
+                            <div className="text-sm text-gray-500">
+                              {formatPercentage(impact.normalPodiumChance)}
+                            </div>
+                          </td>
+                          <td className="px-2 py-2 whitespace-nowrap">
+                            <div className="text-sm font-medium">
+                              {formatPercentage(impact.adjustedPodiumChance)}
+                            </div>
+                          </td>
+                          <td className="px-2 py-2 whitespace-nowrap">
+                            <div className={`text-sm font-medium ${getImpactColor(impact.normalPodiumChance, impact.adjustedPodiumChance)}`}>
+                              {impact.adjustedPodiumChance > impact.normalPodiumChance ? '+' : ''}
+                              {formatPercentage(impact.adjustedPodiumChance - impact.normalPodiumChance)}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {typedPathData.winsChampionship.podiumChanges.length > 5 && (
+                  <div className="mt-2 text-sm text-gray-500 text-right">
+                    Showing top 5 of {typedPathData.winsChampionship.podiumChanges.length} affected brackets
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    ) : (
+      <div className="bg-gray-100 p-6 rounded-lg text-center">
+        <p className="text-gray-600">No team championship path analysis is available for the current tournament stage.</p>
+      </div>
+    )}
+  </div>
+)}
+
+{/* Championship Scenarios Tab */}
+{activeTab === 'championshipScenarios' && (
+  <div>
+    <h2 className="text-xl font-bold text-gray-800 mb-4">Championship Scenarios</h2>
+    <p className="text-gray-600 mb-4">How specific championship matchups affect bracket chances.</p>
+    
+    {analysisData.pathAnalysis && analysisData.pathAnalysis.championshipScenarios && 
      Array.isArray(analysisData.pathAnalysis.championshipScenarios) && 
      analysisData.pathAnalysis.championshipScenarios.length > 0 ? (
-              <div className="space-y-8">
-                {analysisData.pathAnalysis.championshipScenarios.map((scenario, scenarioIndex) => (
-                  <div key={scenarioIndex} className="border border-gray-200 rounded-lg overflow-hidden">
-                    <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
-                      <h3 className="text-lg font-semibold text-blue-800">
-                        Championship Scenario: {scenario.matchup.teamA.name} vs {scenario.matchup.teamB.name}
-                      </h3>
+      <div className="space-y-8">
+        {analysisData.pathAnalysis.championshipScenarios.map((scenario, scenarioIndex) => (
+          <div key={scenarioIndex} className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
+              <h3 className="text-lg font-semibold text-blue-800">
+                Championship Scenario: {scenario.matchup.teamA.name} vs {scenario.matchup.teamB.name}
+              </h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+              {scenario.outcomes.map((outcome, outcomeIndex) => (
+                <div key={outcomeIndex} className="p-4">
+                  <div className="flex items-center mb-4">
+                    <div className="bg-green-100 text-green-800 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center mr-2">
+                      {outcome.winner.seed}
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200">
-                      {scenario.outcomes.map((outcome, outcomeIndex) => (
-                        <div key={outcomeIndex} className="p-4">
-                          <div className="flex items-center mb-4">
-                            <div className="bg-green-100 text-green-800 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center mr-2">
-                              {outcome.winner.seed}
-                            </div>
-                            <div className="text-lg font-medium text-green-800">
-                              {outcome.winner.name} Wins Championship
-                            </div>
-                          </div>
-                          
-                          <div className="text-sm text-gray-600 mb-2">Top bracket impacts:</div>
-                          
-                          <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                              <thead>
-                                <tr>
-                                  <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bracket</th>
-                                  <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Normal Chance</th>
-                                  <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">If {outcome.winner.name} Wins</th>
-                                  <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
-                                </tr>
-                              </thead>
-                              <tbody className="bg-white divide-y divide-gray-200">
-                                {outcome.bracketImpacts.slice(0, 5).map((impact, impactIndex) => (
-                                  <tr key={impactIndex}>
-                                    <td className="px-2 py-2 whitespace-nowrap">
-                                      <div className="text-sm font-medium text-gray-900">
-                                        {impact.participantName}
-                                        {impact.entryNumber > 1 && (
-                                          <span className="text-xs text-gray-500 ml-1">
-                                            (#{impact.entryNumber})
-                                          </span>
-                                        )}
-                                      </div>
-                                    </td>
-                                    <td className="px-2 py-2 whitespace-nowrap">
-                                      <div className="text-sm text-gray-500">
-                                        {formatPercentage(impact.normalPodiumChance)}
-                                      </div>
-                                    </td>
-                                    <td className="px-2 py-2 whitespace-nowrap">
-                                      <div className="text-sm font-medium">
-                                        {formatPercentage(impact.affectedPodiumChance)}
-                                      </div>
-                                    </td>
-                                    <td className="px-2 py-2 whitespace-nowrap">
-                                      <div className={`text-sm font-medium ${getImpactColor(impact.normalPodiumChance, impact.affectedPodiumChance)}`}>
-                                        {impact.affectedPodiumChance > impact.normalPodiumChance ? '+' : ''}
-                                        {formatPercentage(impact.affectedPodiumChance - impact.normalPodiumChance)}
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                          
-                          {outcome.bracketImpacts.length > 5 && (
-                            <div className="mt-2 text-sm text-gray-500 text-right">
-                              Showing top 5 of {outcome.bracketImpacts.length} affected brackets
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                    <div className="text-lg font-medium text-green-800">
+                      {outcome.winner.name} Wins Championship
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-gray-100 p-6 rounded-lg text-center">
-                <p className="text-gray-600">No path analysis is available for the current tournament stage.</p>
-              </div>
-            )}
+                  
+                  <div className="text-sm text-gray-600 mb-2">Top bracket impacts:</div>
+                  
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr>
+                          <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bracket</th>
+                          <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Normal Chance</th>
+                          <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">If {outcome.winner.name} Wins</th>
+                          <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {outcome.bracketImpacts.slice(0, 5).map((impact, impactIndex) => (
+                          <tr key={impactIndex}>
+                            <td className="px-2 py-2 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">
+                                {impact.participantName}
+                                {impact.entryNumber > 1 && (
+                                  <span className="text-xs text-gray-500 ml-1">
+                                    (#{impact.entryNumber})
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">
+                                {formatPercentage(impact.normalPodiumChance)}
+                              </div>
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap">
+                              <div className="text-sm font-medium">
+                                {formatPercentage(impact.affectedPodiumChance)}
+                              </div>
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap">
+                              <div className={`text-sm font-medium ${getImpactColor(impact.normalPodiumChance, impact.affectedPodiumChance)}`}>
+                                {impact.affectedPodiumChance > impact.normalPodiumChance ? '+' : ''}
+                                {formatPercentage(impact.affectedPodiumChance - impact.normalPodiumChance)}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {outcome.bracketImpacts.length > 5 && (
+                    <div className="mt-2 text-sm text-gray-500 text-right">
+                      Showing top 5 of {outcome.bracketImpacts.length} affected brackets
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-        )}
+        ))}
+      </div>
+    ) : (
+      <div className="bg-gray-100 p-6 rounded-lg text-center">
+        <p className="text-gray-600">No championship scenario analysis is available for the current tournament stage.</p>
+      </div>
+    )}
+  </div>
+)}
 
         {/* Championship Picks Tab */}
         {activeTab === 'championshipPicks' && (
@@ -848,8 +955,7 @@ const TournamentAnalysisPage: React.FC = () => {
       <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
         <h2 className="text-lg font-bold text-gray-800 mb-3">About this Analysis</h2>
         <p className="text-gray-700 mb-3">
-          This analysis examines all {analysisData.totalPossibleOutcomes.toLocaleString()} 
-          remaining possible tournament outcomes to see how each bracket could perform.
+          This analysis examines all {analysisData.totalPossibleOutcomes.toLocaleString()} remaining possible tournament outcomes to see how each bracket could perform.
         </p>
         <p className="text-gray-700 mb-3">
           We calculate each bracket's potential final scores, chances of winning,

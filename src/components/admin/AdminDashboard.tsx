@@ -7,6 +7,7 @@ import AdminUsers from './AdminUsers';
 import AdminBrackets from './AdminBrackets';
 import AdminTournament from './AdminTournament';
 import AdminNcaaMonitor from './AdminNcaaMonitor';
+import AdminTournamentPossibilities from './AdminTournamentPossibilities';
 
 const AdminDashboard: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -112,6 +113,14 @@ const AdminDashboard: React.FC = () => {
               </li>
               <li>
                 <Link 
+                  to="/admin/tournament-analysis" 
+                  className="block py-2 px-4 rounded hover:bg-gray-700"
+                >
+                  Tournament Analysis
+                </Link>
+              </li>
+              <li>
+                <Link 
                   to="/" 
                   className="block py-2 px-4 rounded hover:bg-gray-700"
                 >
@@ -134,6 +143,7 @@ const AdminDashboard: React.FC = () => {
             <Route path="/brackets" element={<AdminBrackets />} />
             <Route path="/tournament" element={<AdminTournament />} />
             <Route path="/ncaa-monitor" element={<AdminNcaaMonitor />} />
+            <Route path="/tournament-analysis" element={<AdminTournamentPossibilities />} />
           </Routes>
         </div>
       </div>
