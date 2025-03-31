@@ -6,6 +6,7 @@ import api from "../services/api";
 interface Team {
   name: string;
   seed: number;
+  region?: string;
 }
 
 interface PodiumContender {
@@ -86,10 +87,12 @@ interface ChampionshipScenario {
     teamA: {
       name: string;
       seed: number;
+      region?: string;
     };
     teamB: {
       name: string;
       seed: number;
+      region?: string;
     };
   };
   outcomes: OutcomeResult[];
@@ -192,9 +195,6 @@ const TournamentAnalysisPage: React.FC = () => {
 
       setIsLoading(true);
       try {
-        console.log(
-          `Fetching tournament analysis data for stage: ${selectedStage}`
-        );
         let url = "/tournament/possibilities";
 
         // If a specific stage is selected (not "current"), add the parameter
@@ -223,20 +223,16 @@ const TournamentAnalysisPage: React.FC = () => {
       activeTab === "teamPaths" || activeTab === "championshipScenarios";
 
     if (isPathAnalysisTab && !isLoading) {
-      console.log(`Fetching path data for tab: ${activeTab}`);
 
       const fetchPathAnalysis = async () => {
         try {
           const response = await api.get("/tournament/path-analysis");
-          console.log("Path analysis API response received");
 
           if (response.data && response.data.pathAnalysis) {
             // Log detailed info about the received data
             const teamCount = response.data.pathAnalysis.teamPaths
               ? Object.keys(response.data.pathAnalysis.teamPaths).length
               : 0;
-
-            console.log(`Received data for ${teamCount} teams`);
 
             if (teamCount > 0) {
               const teamsWithImpacts = Object.entries(
@@ -253,12 +249,6 @@ const TournamentAnalysisPage: React.FC = () => {
                   typedPathData.winsChampionship.podiumChanges.length > 0
                 );
               });
-              console.log(
-                `Teams with podium impacts: ${teamsWithImpacts.length}`
-              );
-              console.log(
-                `Teams: ${teamsWithImpacts.map((t) => t[0]).join(", ")}`
-              );
             }
 
             // Update the analysis data
@@ -1097,156 +1087,205 @@ const TournamentAnalysisPage: React.FC = () => {
           </div>
         )}
 
-        {/* Championship Scenarios Tab */}
-        {activeTab === "championshipScenarios" && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-800 mb-4">
-              Championship Scenarios
-            </h2>
-            <p className="text-gray-600 mb-4">
-              How specific championship matchups affect bracket chances.
-            </p>
+{activeTab === "championshipScenarios" && (
+  <div>
+    <h2 className="text-xl font-bold text-gray-800 mb-4">
+      Championship Scenarios
+    </h2>
+    <p className="text-gray-600 mb-4">
+      How specific championship matchups affect bracket standings.
+    </p>
 
-            {analysisData.pathAnalysis &&
-            analysisData.pathAnalysis.championshipScenarios &&
-            Array.isArray(analysisData.pathAnalysis.championshipScenarios) &&
-            analysisData.pathAnalysis.championshipScenarios.length > 0 ? (
-              <div className="space-y-8">
-                {analysisData.pathAnalysis.championshipScenarios.map(
-                  (scenario, scenarioIndex) => (
-                    <div
-                      key={scenarioIndex}
-                      className="border border-gray-200 rounded-lg overflow-hidden"
-                    >
-                      <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
-                        <h3 className="text-lg font-semibold text-blue-800">
-                          Championship Scenario: {scenario.matchup.teamA.name}{" "}
-                          vs {scenario.matchup.teamB.name}
-                        </h3>
+    {analysisData.pathAnalysis &&
+    analysisData.pathAnalysis.championshipScenarios &&
+    Array.isArray(analysisData.pathAnalysis.championshipScenarios) &&
+    analysisData.pathAnalysis.championshipScenarios.length > 0 ? (
+      <div className="space-y-8">
+        {analysisData.pathAnalysis.championshipScenarios.map((scenario, scenarioIndex) => (
+          <div
+            key={scenarioIndex}
+            className="border border-gray-200 rounded-lg overflow-hidden"
+          >
+            <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
+              <h3 className="text-lg font-semibold text-blue-800 flex items-center">
+                <span className="bg-blue-200 text-blue-800 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center mr-2">
+                  {scenario.matchup.teamA.seed}
+                </span>
+                {scenario.matchup.teamA.name}
+                {scenario.matchup.teamA.region && (
+                  <span className="ml-1 text-sm text-blue-600">({scenario.matchup.teamA.region})</span>
+                )}
+                <span className="mx-2 text-blue-600">vs</span>
+                <span className="bg-blue-200 text-blue-800 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center mr-2">
+                  {scenario.matchup.teamB.seed}
+                </span>
+                {scenario.matchup.teamB.name}
+                {scenario.matchup.teamB.region && (
+                  <span className="ml-1 text-sm text-blue-600">({scenario.matchup.teamB.region})</span>
+                )}
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+              {scenario.outcomes.map((outcome, outcomeIndex) => {
+                // Handle position display with proper tie logic
+                const bracketsByScore: Record<number, BracketImpact[]> = {};
+                
+                // Group brackets by score
+                outcome.bracketImpacts.forEach(impact => {
+                  const score = impact.currentScore;
+                  if (!bracketsByScore[score]) {
+                    bracketsByScore[score] = [];
+                  }
+                  bracketsByScore[score].push(impact);
+                });
+                
+                // Sort scores in descending order
+                const sortedScores = Object.keys(bracketsByScore)
+                  .map(Number)
+                  .sort((a, b) => b - a);
+                
+                // Create display rows with proper position tracking
+                const displayRows: Array<{
+                  impact: BracketImpact;
+                  displayPosition: number;
+                  isTied: boolean;
+                }> = [];
+                
+                let currentPosition = 1;
+                
+                // Process each score group
+                sortedScores.forEach(score => {
+                  const brackets = bracketsByScore[score];
+                  const isTied = brackets.length > 1;
+                  
+                  // Assign the same position to all brackets with the same score
+                  brackets.forEach(impact => {
+                    displayRows.push({
+                      impact,
+                      displayPosition: currentPosition,
+                      isTied
+                    });
+                  });
+                  
+                  // Move position counter past this group
+                  currentPosition += brackets.length;
+                });
+                
+                return (
+                  <div key={outcomeIndex} className="p-4">
+                    <div className="flex items-center mb-4">
+                      <div className="bg-green-100 text-green-800 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center mr-2">
+                        {outcome.winner.seed}
                       </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-200">
-                        {scenario.outcomes.map((outcome, outcomeIndex) => (
-                          <div key={outcomeIndex} className="p-4">
-                            <div className="flex items-center mb-4">
-                              <div className="bg-green-100 text-green-800 text-sm font-bold rounded-full w-6 h-6 flex items-center justify-center mr-2">
-                                {outcome.winner.seed}
-                              </div>
-                              <div className="text-lg font-medium text-green-800">
-                                {outcome.winner.name} Wins Championship
-                              </div>
-                            </div>
-
-                            <div className="text-sm text-gray-600 mb-2">
-                              Top bracket impacts:
-                            </div>
-
-                            <div className="overflow-x-auto">
-                              <table className="min-w-full divide-y divide-gray-200">
-                                <thead>
-                                  <tr>
-                                    <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                      Bracket
-                                    </th>
-                                    <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                      Normal Chance
-                                    </th>
-                                    <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                      If {outcome.winner.name} Wins
-                                    </th>
-                                    <th className="px-2 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                      Change
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                  {outcome.bracketImpacts
-                                    .slice() // Create a copy of the array to avoid mutating the original
-                                    .sort(
-                                      (a, b) =>
-                                        Math.abs(
-                                          b.affectedPodiumChance -
-                                            b.normalPodiumChance
-                                        ) -
-                                        Math.abs(
-                                          a.affectedPodiumChance -
-                                            a.normalPodiumChance
-                                        )
-                                    )
-                                    .slice(0, 5)
-                                    .map((impact, impactIndex) => (
-                                      <tr key={impactIndex}>
-                                        <td className="px-2 py-2 whitespace-nowrap">
-                                          <div className="text-sm font-medium text-gray-900">
-                                            {impact.participantName}
-                                            {impact.entryNumber > 1 && (
-                                              <span className="text-xs text-gray-500 ml-1">
-                                                (#{impact.entryNumber})
-                                              </span>
-                                            )}
-                                          </div>
-                                        </td>
-                                        <td className="px-2 py-2 whitespace-nowrap">
-                                          <div className="text-sm text-gray-500">
-                                            {formatPercentage(
-                                              impact.normalPodiumChance
-                                            )}
-                                          </div>
-                                        </td>
-                                        <td className="px-2 py-2 whitespace-nowrap">
-                                          <div className="text-sm font-medium">
-                                            {formatPercentage(
-                                              impact.affectedPodiumChance
-                                            )}
-                                          </div>
-                                        </td>
-                                        <td className="px-2 py-2 whitespace-nowrap">
-                                          <div
-                                            className={`text-sm font-medium ${getImpactColor(
-                                              impact.normalPodiumChance,
-                                              impact.affectedPodiumChance
-                                            )}`}
-                                          >
-                                            {impact.affectedPodiumChance >
-                                            impact.normalPodiumChance
-                                              ? "+"
-                                              : ""}
-                                            {formatPercentage(
-                                              impact.affectedPodiumChance -
-                                                impact.normalPodiumChance
-                                            )}
-                                          </div>
-                                        </td>
-                                      </tr>
-                                    ))}
-                                </tbody>
-                              </table>
-                            </div>
-
-                            {outcome.bracketImpacts.length > 5 && (
-                              <div className="mt-2 text-sm text-gray-500 text-right">
-                                Showing top 5 of {outcome.bracketImpacts.length}{" "}
-                                affected brackets
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                      <div className="text-lg font-medium text-green-800">
+                        {outcome.winner.name} Wins Championship
                       </div>
                     </div>
-                  )
-                )}
-              </div>
-            ) : (
-              <div className="bg-gray-100 p-6 rounded-lg text-center">
-                <p className="text-gray-600">
-                  No championship scenario analysis is available for the current
-                  tournament stage.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
 
+                    <div className="text-sm text-gray-600 mb-2">
+                      Projected top bracket standings:
+                    </div>
+
+                    {/* Updated display format with proper tie handling */}
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full bg-white">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                              Rank
+                            </th>
+                            <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Participant
+                            </th>
+                            <th className="px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                              Score
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {displayRows.map((row, idx) => {
+                            const { impact, displayPosition, isTied } = row;
+                            
+                            // Only highlight top 3 positions
+                            const isTopThree = displayPosition <= 3;
+                            
+                            // Assign medal based on position
+                            let medal = '';
+                            if (displayPosition === 1) medal = '🏆';
+                            else if (displayPosition === 2) medal = '🥈';
+                            else if (displayPosition === 3) medal = '🥉';
+                            
+                            // Position text should show "T-1st" for ties
+                            const positionText = `${isTied ? 'T-' : ''}${displayPosition}${getOrdinalSuffix(displayPosition)}`;
+                            
+                            return (
+                              <tr 
+                                key={idx}
+                                className={`hover:bg-gray-50 ${isTopThree ? 'bg-yellow-50' : ''}`}
+                              >
+                                <td className="px-2 py-2 whitespace-nowrap">
+                                  <div className={`text-sm font-bold ${
+                                    displayPosition === 1 ? 'text-yellow-600' :
+                                    displayPosition === 2 ? 'text-gray-500' :
+                                    displayPosition === 3 ? 'text-amber-700' :
+                                    'text-gray-900'
+                                  }`}>
+                                    {medal && `${medal} `}
+                                    {positionText}
+                                  </div>
+                                </td>
+                                <td className="px-2 py-2 whitespace-nowrap">
+                                  <div className="text-sm font-medium text-gray-900">
+                                    {impact.participantName}
+                                    {impact.entryNumber > 1 && (
+                                      <span className="text-xs text-gray-500 ml-1">
+                                        (#{impact.entryNumber})
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-2 py-2 whitespace-nowrap text-right">
+                                  <div className="text-sm font-bold text-gray-900">
+                                    {impact.currentScore}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Link to view top bracket */}
+                    {displayRows.length > 0 && (
+                      <div className="mt-2 text-sm text-gray-500 text-right">
+                        <Link
+                          to={`/bracket/view/${displayRows[0].impact.bracketId}`}
+                          className="text-blue-600 hover:text-blue-800 font-medium"
+                          target="_blank"
+                        >
+                          View {displayRows[0].impact.participantName}'s Bracket →
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="bg-gray-100 p-6 rounded-lg text-center">
+        <p className="text-gray-600">
+          No championship scenario analysis is available for the current
+          tournament stage.
+        </p>
+      </div>
+    )}
+  </div>
+)}
         {/* Championship Picks Tab */}
         {activeTab === "championshipPicks" && (
           <div>

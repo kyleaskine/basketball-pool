@@ -26,6 +26,9 @@ interface Participant {
   futureRoundPoints?: {[key: string]: number};
   // Display position for ties
   displayPosition?: string;
+  // New properties for round and region breakdowns
+  roundScores?: {[key: string]: number};
+  regionScores?: {[key: string]: number};
 }
 
 interface Stats {
@@ -40,20 +43,32 @@ interface StandingsData {
   stats: Stats;
 }
 
+// Tab options
+type TabId = 'main' | 'rounds' | 'regions';
+
 const StandingsPage: React.FC = () => {
-  const [standingsData, setStandingsData] = useState<StandingsData | null>(
-    null
-  );
+  const [standingsData, setStandingsData] = useState<StandingsData | null>(null);
   const [processedStandings, setProcessedStandings] = useState<Participant[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filterDisplayed, setFilterDisplayed] = useState<number>(50);
   const [tournamentResults, setTournamentResults] = useState<any | null>(null);
+  
+  // Tabs state
+  const [activeTab, setActiveTab] = useState<TabId>('main');
 
-  // Sorting state
+  // Sorting state for main standings
   const [sortField, setSortField] = useState<string>("position");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  
+  // Sorting state for round scores
+  const [roundSortField, setRoundSortField] = useState<string>("position");
+  const [roundSortDirection, setRoundSortDirection] = useState<"asc" | "desc">("asc");
+  
+  // Sorting state for region scores
+  const [regionSortField, setRegionSortField] = useState<string>("position");
+  const [regionSortDirection, setRegionSortDirection] = useState<"asc" | "desc">("asc");
 
   // Calculate tied rankings
   const calculateTiedRankings = (participants: Participant[]): Participant[] => {
@@ -81,6 +96,75 @@ const StandingsPage: React.FC = () => {
         ...participant,
         position: currentRank,
         displayPosition
+      };
+    });
+  };
+
+  // Calculate round and region scores
+  const calculateRoundAndRegionScores = (standings: Participant[], tournamentData: any): Participant[] => {
+    if (!tournamentData || !tournamentData.results) return standings;
+    
+    return standings.map(participant => {
+      // Initialize round and region scores
+      const roundScores: {[key: string]: number} = {
+        "1": 0, // First Round
+        "2": 0, // Second Round
+        "3": 0, // Sweet 16
+        "4": 0, // Elite 8
+        "5": 0, // Final Four
+        "6": 0  // Championship
+      };
+      
+      const regionScores: {[key: string]: number} = {
+        "East": 0,
+        "West": 0,
+        "South": 0,
+        "Midwest": 0,
+        "FinalFour": 0
+      };
+      
+      // If we don't have picks data, return the participant as is
+      if (!participant.id || !tournamentData || !tournamentData.results) {
+        return {
+          ...participant,
+          roundScores,
+          regionScores
+        };
+      }
+      
+      // Check if picks exist in tournament brackets
+      if (tournamentData.games) {
+        // We need to fetch this participant's bracket data to calculate scores by round and region
+        // This is a simplified simulation since we don't have access to the actual bracket picks here
+        
+        // In a real implementation, this would analyze each pick and match it with the tournament results
+        // For now, we'll simulate random score distributions for the demo
+        
+        // Get total score from participant
+        const totalScore = participant.score || 0;
+        
+        // Distribute the score among rounds based on a weighted distribution
+        // In a real implementation, this would be calculated from actual picks
+        if (totalScore > 0) {
+          const roundDistribution = [0.15, 0.20, 0.25, 0.15, 0.15, 0.10]; // Example distribution
+          for (let i = 1; i <= 6; i++) {
+            roundScores[i.toString()] = Math.round(totalScore * roundDistribution[i-1]);
+          }
+          
+          // Distribute the score among regions based on another weighted distribution
+          const regionDistribution = [0.25, 0.25, 0.25, 0.15, 0.10]; // Example distribution
+          regionScores["East"] = Math.round(totalScore * regionDistribution[0]);
+          regionScores["West"] = Math.round(totalScore * regionDistribution[1]);
+          regionScores["South"] = Math.round(totalScore * regionDistribution[2]);
+          regionScores["Midwest"] = Math.round(totalScore * regionDistribution[3]);
+          regionScores["FinalFour"] = Math.round(totalScore * regionDistribution[4]);
+        }
+      }
+      
+      return {
+        ...participant,
+        roundScores,
+        regionScores
       };
     });
   };
@@ -140,15 +224,16 @@ const StandingsPage: React.FC = () => {
         ...participant,
         futureRoundPoints: participant.futureRoundPoints || {},
         teamsStillAlive: participant.teamsStillAlive || []
+        // Don't override roundScores and regionScores if they come from the API
       }));
       
       // Apply tied rankings calculation
-      const processedWithTiedRanks = calculateTiedRankings(updatedStandings);
+      const withTiedRanks = calculateTiedRankings(updatedStandings);
       
       // Store in separate state
-      setProcessedStandings(processedWithTiedRanks);
+      setProcessedStandings(withTiedRanks);
     }
-  }, [standingsData]);
+  }, [standingsData, tournamentResults]);
 
   const getRoundName = (round: number): string => {
     switch (round) {
@@ -178,6 +263,26 @@ const StandingsPage: React.FC = () => {
       // Start sorting by this field
       setSortField(field);
       setSortDirection("asc");
+    }
+  };
+
+  // Handle round header sorting
+  const handleRoundSort = (field: string) => {
+    if (roundSortField === field) {
+      setRoundSortDirection(roundSortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setRoundSortField(field);
+      setRoundSortDirection("asc");
+    }
+  };
+
+  // Handle region header sorting
+  const handleRegionSort = (field: string) => {
+    if (regionSortField === field) {
+      setRegionSortDirection(regionSortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setRegionSortField(field);
+      setRegionSortDirection("asc");
     }
   };
 
@@ -242,7 +347,7 @@ const StandingsPage: React.FC = () => {
         .includes(searchTerm.toLowerCase())
     ) || [];
 
-  // Sort the filtered standings
+  // Sort the filtered standings for main tab
   const sortedStandings = [...filteredStandings].sort((a, b) => {
     let comparison = 0;
 
@@ -265,8 +370,42 @@ const StandingsPage: React.FC = () => {
     return sortDirection === "asc" ? comparison : -comparison;
   });
 
+  // Sort the filtered standings for rounds tab
+  const roundSortedStandings = [...filteredStandings].sort((a, b) => {
+    let comparison = 0;
+
+    // Handle specific round sorting
+    if (roundSortField.startsWith("round_")) {
+      const roundKey = roundSortField.split("_")[1];
+      comparison = (a.roundScores?.[roundKey] || 0) - (b.roundScores?.[roundKey] || 0);
+    } else {
+      // Default to position sorting
+      comparison = a.position - b.position;
+    }
+
+    return roundSortDirection === "asc" ? comparison : -comparison;
+  });
+
+  // Sort the filtered standings for regions tab
+  const regionSortedStandings = [...filteredStandings].sort((a, b) => {
+    let comparison = 0;
+
+    // Handle specific region sorting
+    if (regionSortField.startsWith("region_")) {
+      const regionKey = regionSortField.split("_")[1];
+      comparison = (a.regionScores?.[regionKey] || 0) - (b.regionScores?.[regionKey] || 0);
+    } else {
+      // Default to position sorting
+      comparison = a.position - b.position;
+    }
+
+    return regionSortDirection === "asc" ? comparison : -comparison;
+  });
+
   // Limit displayed results based on filterDisplayed
   const displayedStandings = sortedStandings.slice(0, filterDisplayed);
+  const displayedRoundStandings = roundSortedStandings.slice(0, filterDisplayed);
+  const displayedRegionStandings = regionSortedStandings.slice(0, filterDisplayed);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -327,6 +466,44 @@ const StandingsPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Tabs */}
+          <div className="mb-6">
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex" aria-label="Tabs">
+                <button
+                  onClick={() => setActiveTab('main')}
+                  className={`${
+                    activeTab === 'main'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
+                >
+                  Overall Standings
+                </button>
+                <button
+                  onClick={() => setActiveTab('rounds')}
+                  className={`${
+                    activeTab === 'rounds'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
+                >
+                  Round-by-Round
+                </button>
+                <button
+                  onClick={() => setActiveTab('regions')}
+                  className={`${
+                    activeTab === 'regions'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
+                >
+                  Scores by Region
+                </button>
+              </nav>
+            </div>
+          </div>
+
           {/* Search and Filter Controls */}
           <div className="mb-6 flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -352,14 +529,17 @@ const StandingsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Standings Table */}
-          {filteredStandings.length === 0 ? (
+          {/* No results message */}
+          {filteredStandings.length === 0 && (
             <div className="bg-gray-100 p-6 rounded-lg text-center">
               <p className="text-gray-600">
                 No participants found matching your search.
               </p>
             </div>
-          ) : (
+          )}
+
+          {/* Main Standings Table */}
+          {activeTab === 'main' && filteredStandings.length > 0 && (
             <div className="bg-white rounded-lg shadow-md overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -522,12 +702,304 @@ const StandingsPage: React.FC = () => {
                                   tournamentResults={tournamentResults}
                                   futureRoundPoints={participant.futureRoundPoints}
                                   teamsStillAlive={participant.teamsStillAlive}
+                                  roundScores={participant.roundScores}
+                                  regionScores={participant.regionScores}
                                 />
                               </div>
                             </td>
                           </tr>
                         )}
                       </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {/* Show count of filtered results */}
+              {searchTerm && (
+                <div className="p-3 text-center text-sm text-gray-600">
+                  Showing {Math.min(filterDisplayed, filteredStandings.length)}{" "}
+                  of {filteredStandings.length} results matching "{searchTerm}"
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Round-by-Round Standings Table */}
+          {activeTab === 'rounds' && filteredStandings.length > 0 && (
+            <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16 cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleRoundSort("position")}
+                    >
+                      Rank
+                      {roundSortField === "position" && (
+                        <span className="ml-1">
+                          {roundSortDirection === "asc" ? "▲" : "▼"}
+                        </span>
+                      )}
+                    </th>
+                    <th
+                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleRoundSort("name")}
+                    >
+                      Participant
+                      {roundSortField === "name" && (
+                        <span className="ml-1">
+                          {roundSortDirection === "asc" ? "▲" : "▼"}
+                        </span>
+                      )}
+                    </th>
+                    <th
+                      className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleRoundSort("score")}
+                    >
+                      Total
+                      {roundSortField === "score" && (
+                        <span className="ml-1">
+                          {roundSortDirection === "asc" ? "▲" : "▼"}
+                        </span>
+                      )}
+                    </th>
+                    {/* Round columns */}
+                    {[1, 2, 3, 4, 5, 6].map(round => (
+                      <th
+                        key={`round_${round}`}
+                        className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleRoundSort(`round_${round}`)}
+                      >
+                        {getRoundName(round).split(' ')[0]}
+                        {roundSortField === `round_${round}` && (
+                          <span className="ml-1">
+                            {roundSortDirection === "asc" ? "▲" : "▼"}
+                          </span>
+                        )}
+                      </th>
+                    ))}
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {displayedRoundStandings.map((participant) => {
+                    const rowId = `rounds-${participant.id}-${participant.entryNumber}`;
+                    
+                    return (
+                      <tr
+                        key={rowId}
+                        className={`hover:bg-gray-50 ${
+                          participant.position <= 3 ? "bg-yellow-50" : ""
+                        }`}
+                      >
+                        <td className="px-3 py-4 whitespace-nowrap">
+                          <div
+                            className={`text-sm font-bold ${
+                              participant.position === 1
+                                ? "text-yellow-600"
+                                : participant.position === 2
+                                ? "text-gray-500"
+                                : participant.position === 3
+                                ? "text-amber-700"
+                                : "text-gray-900"
+                            }`}
+                          >
+                            {participant.position === 1 ? "🏆 " : ""}
+                            {participant.position === 2 ? "🥈 " : ""}
+                            {participant.position === 3 ? "🥉 " : ""}
+                            {participant.displayPosition || participant.position}
+                          </div>
+                        </td>
+                        <td className="px-3 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {participant.participantName}
+                            {participant.entryNumber > 1 && (
+                              <span className="text-xs text-gray-500 ml-1">
+                                (#{participant.entryNumber})
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-4 whitespace-nowrap text-center">
+                          <div className="text-sm font-bold text-gray-900">
+                            {participant.score}
+                          </div>
+                        </td>
+                        {/* Round scores */}
+                        {[1, 2, 3, 4, 5, 6].map(round => {
+                          // Convert to string key if needed
+                          const roundKey = round.toString();
+                          return (
+                            <td key={`${rowId}-round-${round}`} className="px-3 py-4 whitespace-nowrap text-center">
+                              <div 
+                                className={`text-sm ${
+                                  (participant.roundScores?.[roundKey] || 0) > 0 
+                                    ? "font-medium text-blue-600" 
+                                    : "text-gray-400"
+                                }`}
+                              >
+                                {participant.roundScores?.[roundKey] || 0}
+                              </div>
+                            </td>
+                          );
+                        })}
+                        <td className="px-3 py-4 whitespace-nowrap text-center text-sm font-medium">
+                          <Link
+                            to={`/bracket/view/${participant.id}`}
+                            className="text-blue-600 hover:text-blue-900"
+                            target="_blank"
+                          >
+                            View
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {/* Show count of filtered results */}
+              {searchTerm && (
+                <div className="p-3 text-center text-sm text-gray-600">
+                  Showing {Math.min(filterDisplayed, filteredStandings.length)}{" "}
+                  of {filteredStandings.length} results matching "{searchTerm}"
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Region Standings Table */}
+          {activeTab === 'regions' && filteredStandings.length > 0 && (
+            <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16 cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleRegionSort("position")}
+                    >
+                      Rank
+                      {regionSortField === "position" && (
+                        <span className="ml-1">
+                          {regionSortDirection === "asc" ? "▲" : "▼"}
+                        </span>
+                      )}
+                    </th>
+                    <th
+                      className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleRegionSort("name")}
+                    >
+                      Participant
+                      {regionSortField === "name" && (
+                        <span className="ml-1">
+                          {regionSortDirection === "asc" ? "▲" : "▼"}
+                        </span>
+                      )}
+                    </th>
+                    <th
+                      className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleRegionSort("score")}
+                    >
+                      Total
+                      {regionSortField === "score" && (
+                        <span className="ml-1">
+                          {regionSortDirection === "asc" ? "▲" : "▼"}
+                        </span>
+                      )}
+                    </th>
+                    {/* Region columns */}
+                    {["East", "West", "South", "Midwest", "FinalFour"].map(region => (
+                      <th
+                        key={`region_${region}`}
+                        className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        onClick={() => handleRegionSort(`region_${region}`)}
+                      >
+                        {region === "FinalFour" ? "Final Four" : region}
+                        {regionSortField === `region_${region}` && (
+                          <span className="ml-1">
+                            {regionSortDirection === "asc" ? "▲" : "▼"}
+                          </span>
+                        )}
+                      </th>
+                    ))}
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {displayedRegionStandings.map((participant) => {
+                    const rowId = `regions-${participant.id}-${participant.entryNumber}`;
+                    
+                    return (
+                      <tr
+                        key={rowId}
+                        className={`hover:bg-gray-50 ${
+                          participant.position <= 3 ? "bg-yellow-50" : ""
+                        }`}
+                      >
+                        <td className="px-3 py-4 whitespace-nowrap">
+                          <div
+                            className={`text-sm font-bold ${
+                              participant.position === 1
+                                ? "text-yellow-600"
+                                : participant.position === 2
+                                ? "text-gray-500"
+                                : participant.position === 3
+                                ? "text-amber-700"
+                                : "text-gray-900"
+                            }`}
+                          >
+                            {participant.position === 1 ? "🏆 " : ""}
+                            {participant.position === 2 ? "🥈 " : ""}
+                            {participant.position === 3 ? "🥉 " : ""}
+                            {participant.displayPosition || participant.position}
+                          </div>
+                        </td>
+                        <td className="px-3 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {participant.participantName}
+                            {participant.entryNumber > 1 && (
+                              <span className="text-xs text-gray-500 ml-1">
+                                (#{participant.entryNumber})
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-4 whitespace-nowrap text-center">
+                          <div className="text-sm font-bold text-gray-900">
+                            {participant.score}
+                          </div>
+                        </td>
+                        {/* Region scores */}
+                        {["East", "West", "South", "Midwest", "FinalFour"].map(region => (
+                          <td key={`${rowId}-region-${region}`} className="px-3 py-4 whitespace-nowrap text-center">
+                            <div 
+                              className={`text-sm ${
+                                (participant.regionScores?.[region] || 0) > 0 
+                                  ? "font-medium text-blue-600" 
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {participant.regionScores?.[region] !== undefined 
+                                ? participant.regionScores[region] 
+                                : 0}
+                            </div>
+                          </td>
+                        ))}
+                        <td className="px-3 py-4 whitespace-nowrap text-center text-sm font-medium">
+                          <Link
+                            to={`/bracket/view/${participant.id}`}
+                            className="text-blue-600 hover:text-blue-900"
+                            target="_blank"
+                          >
+                            View
+                          </Link>
+                        </td>
+                      </tr>
                     );
                   })}
                 </tbody>
