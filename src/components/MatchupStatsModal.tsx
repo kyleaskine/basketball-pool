@@ -85,10 +85,7 @@ const MatchupStatsModal: React.FC<MatchupStatsModalProps> = ({
           });
           setIsLoading(false);
           return;
-        }
-        
-        console.log("Stats data for matchup", matchupId, "slot", selectedSlot, ":", statsData);
-        
+        }        
         // No additional processing needed - the backend returns exactly what we want
         setStats(statsData);
       } catch (err) {

@@ -42,7 +42,6 @@ const TournamentResultsView: React.FC = () => {
   const handleMatchupClick = (matchup: Matchup, slot: "A" | "B") => {
     // Allow clicks for all rounds >= 2 regardless of first round status
     if (matchup.round >= 2) {
-      console.log(`Clicked matchup: ${matchup.id}, round: ${matchup.round}, slot: ${slot}`);
       setSelectedMatchupId(matchup.id);
       setSelectedSlot(slot);
       setIsStatsModalOpen(true);

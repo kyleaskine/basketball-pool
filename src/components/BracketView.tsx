@@ -29,7 +29,6 @@ const BracketView: React.FC = () => {
   const fetchTournamentResults = async () => {
     try {
       const response = await api.get("/tournament/results");
-      console.log("Tournament results fetched:", response.data);
 
       if (response.data && response.data.results) {
         setTournamentResults({

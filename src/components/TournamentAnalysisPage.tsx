@@ -259,10 +259,6 @@ const TournamentAnalysisPage: React.FC = () => {
                 pathAnalysis: response.data.pathAnalysis,
               };
             });
-          } else {
-            console.log(
-              "Response didn't contain expected path analysis data structure"
-            );
           }
         } catch (err) {
           console.error("Error fetching path analysis data:", err);
