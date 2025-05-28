@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { Team, Matchup } from '../types';
 import { Link } from 'react-router-dom';
+import { getRoundName, LoadingSpinner, ErrorDisplay } from '../utils/shared';
 
 interface MatchupInfo {
   teamA: Team | null;
@@ -112,18 +113,6 @@ const MatchupStatsModal: React.FC<MatchupStatsModalProps> = ({
   };
   
   if (!isOpen) return null;
-  
-  const getRoundName = (round: number): string => {
-    switch (round) {
-      case 1: return "First Round";
-      case 2: return "Second Round";
-      case 3: return "Sweet 16";
-      case 4: return "Elite 8";
-      case 5: return "Final Four";
-      case 6: return "Championship";
-      default: return `Round ${round}`;
-    }
-  };
   
   // Sort teams by popularity and seed
   const getSortedTeams = (teamStats: { [teamName: string]: TeamStat }) => {
@@ -252,13 +241,9 @@ const MatchupStatsModal: React.FC<MatchupStatsModalProps> = ({
         )}
         
         {isLoading ? (
-          <div className="flex justify-center p-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
+          <LoadingSpinner />
         ) : error ? (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
-            <p>{error}</p>
-          </div>
+          <ErrorDisplay error={error} />
         ) : stats && Object.keys(stats.teamStats).length > 0 ? (
           <div>
             <div className="bg-blue-50 p-3 rounded-lg mb-4">

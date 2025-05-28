@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { updateServices, Update } from "../services/api";
 import TopStandingsWidget from "./TopStandingsWidget";
 import api from "../services/api";
+import { LoadingSpinner, ErrorDisplay } from '../utils/shared';
 
 const HomePage: React.FC = () => {
   const [updates, setUpdates] = useState<Update[]>([]);
@@ -160,13 +161,9 @@ const HomePage: React.FC = () => {
           </h2>
 
           {isLoading ? (
-            <div className="flex justify-center p-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
+            <LoadingSpinner />
           ) : error ? (
-            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
-              <p>{error}</p>
-            </div>
+            <ErrorDisplay error={error} />
           ) : updates.length === 0 ? (
             <div className="bg-gray-100 p-6 rounded-lg text-center">
               <p className="text-gray-600">

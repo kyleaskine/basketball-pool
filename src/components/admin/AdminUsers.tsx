@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
+import { formatDate, LoadingSpinner, ErrorDisplay } from '../../utils/shared';
 
 interface User {
   _id: string;
@@ -36,17 +37,6 @@ const AdminUsers: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   const handleMakeAdmin = async (userId: string) => {
     if (!window.confirm('Are you sure you want to make this user an admin?')) {
       return;
@@ -80,11 +70,7 @@ const AdminUsers: React.FC = () => {
     <div>
       <h1 className="text-2xl font-bold mb-6">Manage Users</h1>
       
-      {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-6">
-          <p>{error}</p>
-        </div>
-      )}
+      {error && <ErrorDisplay error={error} />}
       
       <div className="mb-6 flex flex-col md:flex-row gap-4">
         <div className="flex-1">
@@ -110,9 +96,7 @@ const AdminUsers: React.FC = () => {
       </div>
       
       {isLoading ? (
-        <div className="flex justify-center p-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
+        <LoadingSpinner />
       ) : filteredUsers.length === 0 ? (
         <div className="bg-gray-100 p-6 rounded-lg text-center">
           <p className="text-gray-600 mb-4">No users found matching your criteria.</p>

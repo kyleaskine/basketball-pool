@@ -3,6 +3,7 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { bracketServices } from '../services/api';
 import ResponsiveBasketballPoolEntryForm from '../BasketballPoolEntryForm';
 import { BracketData, UserInfo } from '../types';
+import { LoadingSpinner, ErrorDisplay } from '../utils/shared';
 
 interface FormData {
   userInfo: UserInfo;
@@ -114,7 +115,7 @@ const BracketEdit: React.FC = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+        <LoadingSpinner />
         <p className="mt-4">Loading bracket...</p>
       </div>
     );
@@ -123,10 +124,7 @@ const BracketEdit: React.FC = () => {
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
-          <p className="font-bold">Error</p>
-          <p>{error}</p>
-        </div>
+        <ErrorDisplay error={error} />
         <div className="mt-4">
           <button 
             onClick={() => navigate('/')}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { BracketResponse } from '../services/api';
+import { LoadingSpinner, ErrorDisplay } from '../utils/shared';
 
 interface BracketListProps {
   brackets: BracketResponse[];
@@ -40,7 +41,7 @@ const BracketList: React.FC<BracketListProps> = ({
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+        <LoadingSpinner />
         <p className="mt-4">Loading your brackets...</p>
       </div>
     );
@@ -49,10 +50,7 @@ const BracketList: React.FC<BracketListProps> = ({
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
-          <p className="font-bold">Error</p>
-          <p>{error}</p>
-        </div>
+        <ErrorDisplay error={error} />
         <div className="mt-4">
           <button 
             onClick={onNavigateHome}

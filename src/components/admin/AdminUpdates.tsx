@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { adminUpdateServices, Update } from '../../services/api';
+import { formatDate, LoadingSpinner, ErrorDisplay, SuccessDisplay } from '../../utils/shared';
 
 const AdminUpdates: React.FC = () => {
   const [updates, setUpdates] = useState<Update[]>([]);
@@ -52,15 +53,6 @@ const AdminUpdates: React.FC = () => {
     }
   };
   
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-  
   const getTypeLabel = (type: string) => {
     switch (type) {
       case 'announcement':
@@ -101,23 +93,13 @@ const AdminUpdates: React.FC = () => {
       </div>
       
       {/* Success message */}
-      {successMessage && (
-        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded mb-6">
-          <p>{successMessage}</p>
-        </div>
-      )}
+      {successMessage && <SuccessDisplay message={successMessage} />}
       
       {/* Error message */}
-      {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-6">
-          <p>{error}</p>
-        </div>
-      )}
+      {error && <ErrorDisplay error={error} />}
       
       {isLoading ? (
-        <div className="flex justify-center p-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
+        <LoadingSpinner />
       ) : updates.length === 0 ? (
         <div className="bg-gray-100 p-6 rounded-lg text-center">
           <p className="text-gray-600 mb-4">No updates found.</p>

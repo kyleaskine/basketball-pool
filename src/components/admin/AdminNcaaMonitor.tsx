@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ncaaUpdateServices, UpdateLog, TodayStats, SchedulerStatus } from "../../services/api";
+import { LoadingSpinner, ErrorDisplay, SuccessDisplay } from '../../utils/shared';
 
 const AdminNcaaMonitor: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"today" | "logs" | "settings">("today");
@@ -203,17 +204,8 @@ const AdminNcaaMonitor: React.FC = () => {
         NCAA Tournament Update Monitor
       </h1>
 
-      {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-6">
-          <p>{error}</p>
-        </div>
-      )}
-
-      {successMessage && (
-        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded mb-6">
-          <p>{successMessage}</p>
-        </div>
-      )}
+      {error && <ErrorDisplay error={error} />}
+      {successMessage && <SuccessDisplay message={successMessage} />}
 
       <div className="mb-6 flex justify-between items-center">
         <div className="text-sm text-gray-600">
@@ -404,7 +396,7 @@ const AdminNcaaMonitor: React.FC = () => {
 
       {isLoading && !todayStats && logs.length === 0 ? (
         <div className="flex justify-center p-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <LoadingSpinner />
         </div>
       ) : (
         <>

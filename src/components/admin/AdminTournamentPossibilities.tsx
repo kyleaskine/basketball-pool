@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { tournamentPossibilitiesServices } from '../../services/api';
+import { LoadingSpinner, ErrorDisplay, SuccessDisplay } from '../../utils/shared';
 
 const AdminTournamentPossibilities: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -51,17 +52,8 @@ const AdminTournamentPossibilities: React.FC = () => {
         </ul>
       </div>
       
-      {message && (
-        <div className="mb-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded">
-          <p>{message}</p>
-        </div>
-      )}
-      
-      {error && (
-        <div className="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
-          <p>{error}</p>
-        </div>
-      )}
+      {message && <SuccessDisplay message={message} />}
+      {error && <ErrorDisplay error={error} />}
       
       <div className="flex items-center">
         <button
@@ -78,7 +70,7 @@ const AdminTournamentPossibilities: React.FC = () => {
         
         {isLoading && (
           <div className="ml-4 flex items-center">
-            <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-blue-500 mr-2"></div>
+            <LoadingSpinner />
             <span className="text-gray-600">This may take several minutes</span>
           </div>
         )}

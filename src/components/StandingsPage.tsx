@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import api from "../services/api";
 import FinalFourDetails from "./FinalFourDetails";
 import ScoreBreakdown from "./ScoreBreakdown";
+import { getRoundName, getOrdinalSuffix, LoadingSpinner, ErrorDisplay } from '../utils/shared';
 
 interface Team {
   seed: number;
@@ -235,25 +236,6 @@ const StandingsPage: React.FC = () => {
     }
   }, [standingsData, tournamentResults]);
 
-  const getRoundName = (round: number): string => {
-    switch (round) {
-      case 1:
-        return "First Round";
-      case 2:
-        return "Second Round";
-      case 3:
-        return "Sweet 16";
-      case 4:
-        return "Elite 8";
-      case 5:
-        return "Final Four";
-      case 6:
-        return "Championship";
-      default:
-        return `Round ${round}`;
-    }
-  };
-
   // Handle column header click for sorting
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -407,21 +389,21 @@ const StandingsPage: React.FC = () => {
   const displayedRoundStandings = roundSortedStandings.slice(0, filterDisplayed);
   const displayedRegionStandings = regionSortedStandings.slice(0, filterDisplayed);
 
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return <ErrorDisplay error={error} />;
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <h1 className="text-3xl font-bold text-blue-800 mb-2">
         Tournament Standings
       </h1>
 
-      {isLoading ? (
-        <div className="flex justify-center p-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      ) : error ? (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded">
-          <p>{error}</p>
-        </div>
-      ) : standingsData ? (
+      {standingsData ? (
         <div>
           {/* Stats Card */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">

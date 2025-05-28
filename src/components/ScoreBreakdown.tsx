@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getRoundName } from '../utils/shared';
 
 interface ScoreBreakdownProps {
   score: number;
@@ -23,19 +24,6 @@ const ScoreBreakdown: React.FC<ScoreBreakdownProps> = ({
   
   // Calculate what rounds are completed
   const completedRounds = tournamentResults?.completedRounds || [];
-  
-  const getRoundName = (round: number | string): string => {
-    const roundNum = typeof round === 'string' ? parseInt(round) : round;
-    switch (roundNum) {
-      case 1: return "First Round";
-      case 2: return "Second Round";
-      case 3: return "Sweet 16";
-      case 4: return "Elite 8";
-      case 5: return "Final Four";
-      case 6: return "Championship";
-      default: return `Round ${round}`;
-    }
-  };
   
   const getRegionColor = (region: string): string => {
     switch (region) {

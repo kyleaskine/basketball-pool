@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { authServices } from '../services/api';
+import { LoadingSpinner, ErrorDisplay } from '../utils/shared';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -93,13 +94,9 @@ const Login: React.FC = () => {
             <p className="text-gray-600">Please wait while we verify your login.</p>
           </div>
           <div className="flex justify-center my-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <LoadingSpinner />
           </div>
-          {error && (
-            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-4">
-              <p>{error}</p>
-            </div>
-          )}
+          {error && <ErrorDisplay error={error} />}
         </div>
       </div>
     );
@@ -151,11 +148,7 @@ const Login: React.FC = () => {
           </p>
         </div>
         
-        {error && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-6">
-            <p>{error}</p>
-          </div>
-        )}
+        {error && <ErrorDisplay error={error} />}
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>

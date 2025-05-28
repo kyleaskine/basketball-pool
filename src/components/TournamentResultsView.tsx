@@ -4,6 +4,7 @@ import api from "../services/api";
 import PrintStyleCompactBracket from "../PrintStyleCompactBracket";
 import { BracketData, Matchup } from "../types";
 import MatchupStatsModal from "./MatchupStatsModal";
+import { LoadingSpinner, ErrorDisplay, getRoundName } from "../utils/shared";
 
 const TournamentResultsView: React.FC = () => {
   // Existing state
@@ -49,22 +50,11 @@ const TournamentResultsView: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-        <p className="mt-4">Loading tournament results...</p>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
-          <p>{error}</p>
-        </div>
-      </div>
-    );
+    return <ErrorDisplay error={error} />;
   }
 
   if (!results || !results.results) {
@@ -76,25 +66,6 @@ const TournamentResultsView: React.FC = () => {
       </div>
     );
   }
-
-  const getRoundName = (round: number): string => {
-    switch (round) {
-      case 1:
-        return "First Round";
-      case 2:
-        return "Second Round";
-      case 3:
-        return "Sweet 16";
-      case 4:
-        return "Elite 8";
-      case 5:
-        return "Final Four";
-      case 6:
-        return "Championship";
-      default:
-        return `Round ${round}`;
-    }
-  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">

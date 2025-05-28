@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import { getOrdinalSuffix, LoadingSpinner, ErrorDisplay } from '../utils/shared';
 
 interface Participant {
   position: number;
@@ -143,15 +144,11 @@ const TopStandingsWidget: React.FC<TopStandingsWidgetProps> = ({ limit = 5 }) =>
   }, [rawStandings, limit]);
   
   if (isLoading) {
-    return (
-      <div className="flex justify-center p-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
-  
+
   if (error) {
-    return null; // Don't show anything if there's an error
+    return <ErrorDisplay error={error} />;
   }
   
   if (rawStandings.length === 0) {
@@ -254,22 +251,6 @@ const TopStandingsWidget: React.FC<TopStandingsWidgetProps> = ({ limit = 5 }) =>
       </div>
     </div>
   );
-};
-
-// Helper function to get ordinal suffix (1st, 2nd, 3rd, etc.)
-const getOrdinalSuffix = (num: number): string => {
-  const j = num % 10;
-  const k = num % 100;
-  if (j === 1 && k !== 11) {
-    return 'st';
-  }
-  if (j === 2 && k !== 12) {
-    return 'nd';
-  }
-  if (j === 3 && k !== 13) {
-    return 'rd';
-  }
-  return 'th';
 };
 
 export default TopStandingsWidget;

@@ -23,6 +23,7 @@ import { authServices } from "./services/api";
 import TournamentResultsView from "./components/TournamentResultsView";
 import PrizesPage from "./components/PrizesPage";
 import TournamentAnalysisPage from "./components/TournamentAnalysisPage";
+import { LoadingSpinner, ErrorDisplay } from "./utils/shared";
 
 // Route guard for Admin Routes
 const AdminRoute = ({ children }: { children: React.ReactElement }) => {
@@ -56,7 +57,7 @@ const AdminRoute = ({ children }: { children: React.ReactElement }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <LoadingSpinner />
       </div>
     );
   }
@@ -88,7 +89,7 @@ const TournamentGuard = ({ children }: { children: React.ReactElement }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <LoadingSpinner />
       </div>
     );
   }

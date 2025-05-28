@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { Team, Matchup, BracketData } from '../../types';
 import PrintStyleCompactBracket from '../../PrintStyleCompactBracket';
 import TournamentInitialize from './TournamentInitialize';
+import { ErrorDisplay, SuccessDisplay } from '../../utils/shared';
 
 interface Game {
   matchupId: number;
@@ -418,17 +419,8 @@ const handleGenerateNextRound = async () => {
     <div>
       <h1 className="text-2xl font-bold mb-4">Tournament Management</h1>
       
-      {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-6">
-          <p>{error}</p>
-        </div>
-      )}
-      
-      {successMessage && (
-        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded mb-6">
-          <p>{successMessage}</p>
-        </div>
-      )}
+      {error && <ErrorDisplay error={error} />}
+      {successMessage && <SuccessDisplay message={successMessage} />}
       
       {isLoading ? (
         <div className="flex justify-center p-12">

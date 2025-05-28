@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { adminUpdateServices, Update } from '../../services/api';
+import { LoadingSpinner, ErrorDisplay } from '../../utils/shared';
 
 const AdminUpdateForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -95,7 +96,7 @@ const AdminUpdateForm: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center p-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <LoadingSpinner />
       </div>
     );
   }
@@ -106,11 +107,7 @@ const AdminUpdateForm: React.FC = () => {
         {isEditMode ? 'Edit Update' : 'Create New Update'}
       </h1>
       
-      {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded mb-6">
-          <p>{error}</p>
-        </div>
-      )}
+      {error && <ErrorDisplay error={error} />}
       
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6">
         {/* Title */}

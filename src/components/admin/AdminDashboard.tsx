@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, Routes, Route } from 'react-router-dom';
 import { adminAuthServices } from '../../services/api';
+import { LoadingSpinner, ErrorDisplay } from '../../utils/shared';
 import AdminUpdates from './AdminUpdates';
 import AdminUpdateForm from './AdminUpdateForm';
 import AdminUsers from './AdminUsers';
@@ -39,7 +40,7 @@ const AdminDashboard: React.FC = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-12 flex justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <LoadingSpinner />
       </div>
     );
   }
@@ -47,10 +48,7 @@ const AdminDashboard: React.FC = () => {
   if (!isAdmin) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
-          <p className="font-bold">Access Denied</p>
-          <p>You don't have permission to access the admin dashboard.</p>
-        </div>
+        <ErrorDisplay error={"You don't have permission to access the admin dashboard."} />
       </div>
     );
   }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
+import { getOrdinalSuffix, formatDate, LoadingSpinner, ErrorDisplay } from '../utils/shared';
 
 // Types for the analysis data based on the updated schema
 interface Team {
@@ -294,39 +295,6 @@ const TournamentAnalysisPage: React.FC = () => {
     }
   }, [activeTab, sortField, sortDirection]);
 
-  // Format a date from ISO string
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  // Calculate width for percentage bars
-  const getPercentageWidth = (percentage: number) => {
-    return `${Math.max(percentage, 1)}%`; // Minimum 1% width for visibility
-  };
-
-  // Helper function to get ordinal suffix (1st, 2nd, 3rd, etc.)
-  const getOrdinalSuffix = (num: number): string => {
-    const j = num % 10;
-    const k = num % 100;
-    if (j === 1 && k !== 11) {
-      return "st";
-    }
-    if (j === 2 && k !== 12) {
-      return "nd";
-    }
-    if (j === 3 && k !== 13) {
-      return "rd";
-    }
-    return "th";
-  };
-
   // Handle sort change for podium contenders
   const handleSortChange = (field: string) => {
     if (field === sortField) {
@@ -340,6 +308,11 @@ const TournamentAnalysisPage: React.FC = () => {
   // Format percentage with one decimal place
   const formatPercentage = (value: number): string => {
     return value.toFixed(1) + "%";
+  };
+
+  // Calculate width for percentage bars
+  const getPercentageWidth = (percentage: number) => {
+    return `${Math.max(percentage, 1)}%`; // Minimum 1% width for visibility
   };
 
   // Calculate impact color based on change percentage
@@ -404,30 +377,11 @@ const TournamentAnalysisPage: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-        <p className="mt-4">Loading tournament analysis...</p>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
-          <p>{error}</p>
-        </div>
-        <div className="mt-4">
-          <Link
-            to="/"
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Return to Home
-          </Link>
-        </div>
-      </div>
-    );
+    return <ErrorDisplay error={error} />;
   }
 
   if (!analysisData) {

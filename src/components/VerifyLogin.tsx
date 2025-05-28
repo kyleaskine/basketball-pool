@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { authServices } from '../services/api';
+import { LoadingSpinner } from '../utils/shared';
 
 const VerifyLogin: React.FC = () => {
   const [isVerifying, setIsVerifying] = useState<boolean>(true);
@@ -65,7 +66,7 @@ const VerifyLogin: React.FC = () => {
             <p className="text-gray-600">Please wait while we sign you in...</p>
           </div>
           <div className="flex justify-center my-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <LoadingSpinner />
           </div>
         </div>
       </div>
